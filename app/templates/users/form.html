@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% set page_title = "Edit account" if mode == "edit" else "New account" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+  {% if mode == 'edit' %}
+  <p class="muted">Signed in as {{ current_user.display_name }}</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post"
+        action="{% if mode == 'edit' %}{{ url_for('users.edit', user_id=user.id) }}{% else %}{{ url_for('users.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="field">
+      <label for="f-username">Username *</label>
+      <input type="text" id="f-username" name="username"
+             value="{{ form_data.get('username', '') }}"
+             autocomplete="username" autocapitalize="none" required>
+      <small class="muted">At least 3 characters. Used to sign in.</small>
+    </div>
+
+    <div class="field">
+      <label for="f-display">Display name</label>
+      <input type="text" id="f-display" name="display_name"
+             value="{{ form_data.get('display_name', '') }}"
+             autocomplete="name">
+    </div>
+
+    <div class="field">
+      <label for="f-role">Role</label>
+      <select id="f-role" name="role">
+        {% for r in roles %}
+        <option value="{{ r }}" {% if form_data.get('role', 'operator') == r %}selected{% endif %}>
+          {{ r|title }}
+        </option>
+        {% endfor %}
+      </select>
+      <small class="muted">
+        <b>Admin</b> manages accounts and everything else.
+        <b>Operator</b> keeps fleet records.
+        <b>Viewer</b> can read but not change anything.
+      </small>
+    </div>
+
+    {% if mode == 'create' %}
+    <div class="field">
+      <label for="f-password">Password *</label>
+      <input type="password" id="f-password" name="password"
+             autocomplete="new-password" minlength="8" required>
+      <small class="muted">At least 8 characters.</small>
+    </div>
+    {% endif %}
+
+    {% if mode == 'edit' %}
+    <div class="field field-wide">
+      <label class="check">
+        <input type="checkbox" name="active" value="on"
+               {% if form_data.get('active') %}checked{% endif %}>
+        <span>Account is active</span>
+      </label>
+      <small class="muted">Uncheck to block sign-in without deleting history.</small>
+    </div>
+    {% endif %}
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create account' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('users.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+
+{% if mode == 'edit' %}
+<section class="panel">
+  <h3>Reset password</h3>
+  <p class="muted">Set a new password without knowing the current one.</p>
+  <form class="form form-grid" method="post" action="{{ url_for('users.reset_password', user_id=user.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="f-reset">New password</label>
+      <input type="password" id="f-reset" name="password"
+             autocomplete="new-password" minlength="8" required>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" type="submit">Reset password</button>
+    </div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

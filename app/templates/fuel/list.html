@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% set page_title = "Fuel" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Fuel logs</h2>
+    <p class="muted">{{ total }} record{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('fuel.create') }}">New fuel log</a>
+</section>
+
+<section class="panel">
+  <h3>Fuel efficiency</h3>
+  {% if efficiency.interval_count %}
+  <div class="stats-strip">
+    <div class="stat"><b>{{ "%.1f"|format(efficiency.avg_km_per_liter) }}</b> km/L average</div>
+    <div class="stat"><b>{{ "%.0f"|format(efficiency.total_km) }}</b> km measured</div>
+    <div class="stat"><b>{{ "%.0f"|format(efficiency.total_liters) }}</b> L over {{ efficiency.interval_count }} fill interval{{ '' if efficiency.interval_count == 1 else 's' }}</div>
+  </div>
+  {% if efficiency.by_vehicle|length > 1 %}
+  <table>
+    <thead><tr><th>Vehicle</th><th>Distance</th><th>Fuel</th><th>Efficiency</th></tr></thead>
+    <tbody>
+      {% for veh in vehicles %}
+      {% set e = efficiency.by_vehicle.get(veh.id) %}
+      {% if e %}
+      <tr>
+        <td data-label="Vehicle">{{ veh.plate_number }} — {{ veh.name }}</td>
+        <td data-label="Distance">{{ "%.0f"|format(e.km) }} km</td>
+        <td data-label="Fuel">{{ "%.0f"|format(e.liters) }} L</td>
+        <td data-label="Efficiency"><b>{{ "%.1f"|format(e.km_per_liter) }}</b> km/L</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <p class="muted">Measured fill-to-fill: distance between two fill-ups divided by the liters added at the second one. Readings with no odometer, or an odometer that went backwards, are skipped.</p>
+  {% else %}
+  <p class="muted">Not enough data yet — efficiency needs at least two fill-ups with odometer readings for the same vehicle.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <form class="filter-bar" method="get" action="{{ url_for('fuel.list') }}">
+    <div class="field">
+      <label for="f-vehicle">Vehicle</label>
+      <select id="f-vehicle" name="vehicle_id">
+        <option value="">All vehicles</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if vehicle_id == veh.id %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-from">From</label>
+      <input type="date" id="f-from" name="date_from" value="{{ date_from or '' }}">
+    </div>
+    <div class="field">
+      <label for="f-to">To</label>
+      <input type="date" id="f-to" name="date_to" value="{{ date_to or '' }}">
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-outline" href="{{ url_for('fuel.list') }}">Clear</a>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th><th>Vehicle</th><th>Liters</th><th>Cost/L</th><th>Total</th><th>Supplier</th><th>Odometer</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      {% set log = item %}
+      {% include "fuel/_row.html" %}
+      {% else %}
+      <tr><td colspan="8" class="empty-state">No fuel logs yet. <a href="{{ url_for('fuel.create') }}">Record the first one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% set endpoint = "fuel.list" %}
+  {% set filters = {"vehicle_id": vehicle_id, "date_from": date_from, "date_to": date_to} %}
+  {% include "partials/pagination.html" %}
+</section>
+{% endblock %}

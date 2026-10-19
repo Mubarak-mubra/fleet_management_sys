@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% set page_title = "Driver detail" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>{{ driver.name }}</h2>
+    <div class="detail-meta">
+      <span class="badge badge-{{ driver.status }}">{{ driver.status|replace('_', ' ')|title }}</span>
+      <span class="badge">{{ driver.card_code }}</span>
+    </div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-outline" href="{{ url_for('drivers.list') }}">Back</a>
+    <a class="btn" href="{{ url_for('drivers.edit', driver_id=driver.id) }}">Edit</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="stats-strip">
+    <div class="stat"><b>{{ summary.trips }}</b> trips</div>
+    <div class="stat"><b>{{ summary.open_trips }}</b> open trips</div>
+    <div class="stat"><b>{{ "%.0f"|format(summary.total_distance_km or 0) }} km</b> distance</div>
+  </div>
+
+  <div class="kv-grid">
+    <div class="kv"><b>Phone</b>{{ driver.phone or '—' }}</div>
+    <div class="kv"><b>License</b>{{ driver.license_number or '—' }}</div>
+    <div class="kv"><b>Card status</b>{{ driver.card_status|title }}</div>
+    <div class="kv"><b>Registered</b>{{ driver.created_at.strftime("%Y-%m-%d") if driver.created_at else '—' }}</div>
+  </div>
+  {% if driver.notes %}
+  <p class="muted">{{ driver.notes }}</p>
+  {% endif %}
+</section>
+
+<section class="panel section">
+  <h3>Trips ({{ driver.trips|length }})</h3>
+  <table>
+    <thead><tr><th>Vehicle</th><th>Route</th><th>Start</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for t in driver.trips|sort(attribute='start_time', reverse=true) %}
+      <tr>
+        <td data-label="Vehicle"><a href="{{ url_for('trips.detail', trip_id=t.id) }}">{{ t.vehicle.plate_number if t.vehicle else t.vehicle_id }}</a></td>
+        <td data-label="Route">{{ t.origin }} &rarr; {{ t.destination }}</td>
+        <td data-label="Start">{% if t.start_time %}{{ t.start_time.strftime("%Y-%m-%d %H:%M") }}{% endif %}</td>
+        <td data-label="Status"><span class="badge badge-{{ t.status }}">{{ t.status|trip_status }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty-state">No trips yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

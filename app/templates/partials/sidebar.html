@@ -1,0 +1,32 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-mark">VMS</span>
+    <span class="brand-sub">Vehicle Management</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="{{ url_for('dashboard.index') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('dashboard.') else '' }}">Dashboard</a>
+    <a href="{{ url_for('vehicles.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('vehicles.') else '' }}">Vehicles</a>
+    <a href="{{ url_for('projects.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('projects.') else '' }}">Projects</a>
+    <a href="{{ url_for('trips.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('trips.') else '' }}">Trips</a>
+    <a href="{{ url_for('drivers.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('drivers.') else '' }}">Drivers</a>
+    <a href="{{ url_for('fuel.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('fuel.') else '' }}">Fuel</a>
+    <a href="{{ url_for('maintenance.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('maintenance.') else '' }}">Maintenance</a>
+    <a href="{{ url_for('expenses.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('expenses.') else '' }}">Expenses</a>
+    <a href="{{ url_for('reports.monthly') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('reports.') else '' }}">Reports</a>
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <a href="{{ url_for('users.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('users.') else '' }}">Users</a>
+    {% endif %}
+    <a href="{{ url_for('auth.change_password') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('auth.') else '' }}">My account</a>
+  </nav>
+</aside>

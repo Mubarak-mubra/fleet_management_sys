@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% set page_title = "Users" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Accounts</h2>
+    <p class="muted">{{ total }} account{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('users.create') }}">New account</a>
+</section>
+
+<section class="panel">
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th><th>Name</th><th>Role</th><th>Status</th>
+        <th>Last sign-in</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td data-label="Username">{{ u.username }}</td>
+        <td data-label="Name">{{ u.display_name or '—' }}</td>
+        <td data-label="Role"><span class="badge badge-{{ u.role }}">{{ u.role_label }}</span></td>
+        <td data-label="Status">
+          <span class="badge badge-{{ 'active' if u.active else 'cancelled' }}">
+            {{ 'Active' if u.active else 'Disabled' }}
+          </span>
+        </td>
+        <td data-label="Last sign-in">{{ u.last_login_at.strftime("%Y-%m-%d %H:%M") if u.last_login_at else 'Never' }}</td>
+        <td class="cell-actions">
+          <div class="row-actions">
+            <a class="btn btn-outline btn-sm" href="{{ url_for('users.edit', user_id=u.id) }}">Edit</a>
+            {% if u.id != current_user.id_int %}
+            <form method="post" action="{{ url_for('users.delete', user_id=u.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No accounts yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

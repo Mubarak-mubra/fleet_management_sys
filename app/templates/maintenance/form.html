@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% set page_title = "Edit maintenance" if mode == "edit" else "New maintenance" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set maintenance_types = ["service", "repair", "inspection", "tire", "battery", "other"] %}
+{% set maintenance_statuses = ["scheduled", "in_progress", "completed"] %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('maintenance.edit', maintenance_id=maintenance.id) }}{% else %}{{ url_for('maintenance.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set current = form_data.get('vehicle_id', maintenance.vehicle_id if maintenance else '') %}
+    <div class="field">
+      <label for="f-vehicle">Vehicle *</label>
+      <select id="f-vehicle" name="vehicle_id" required>
+        <option value="">Select a vehicle…</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if current is not none and current|string == veh.id|string %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('project_id', maintenance.project_id if maintenance else '') %}
+    <div class="field">
+      <label for="f-project">Project</label>
+      <select id="f-project" name="project_id">
+        <option value="">No project</option>
+        {% for proj in projects %}
+        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
+        {% endfor %}
+      </select>
+      <small class="muted">Optional — book this work to a job site for the project report.</small>
+    </div>
+
+    {% set current = form_data.get('maintenance_type', maintenance.maintenance_type if maintenance else '') %}
+    <div class="field">
+      <label for="f-type">Type</label>
+      <select id="f-type" name="maintenance_type">
+        {% for t in maintenance_types %}
+        <option value="{{ t }}" {% if current == t %}selected{% endif %}>{{ t|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('status', maintenance.status if maintenance else '') %}
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        {% for s in maintenance_statuses %}
+        <option value="{{ s }}" {% if current == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('description', maintenance.description if maintenance else '') %}
+    <div class="field field-wide">
+      <label for="f-description">Description *</label>
+      <input type="text" id="f-description" name="description" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('performed_date', maintenance.performed_date.isoformat() if maintenance and maintenance.performed_date else '') %}
+    <div class="field">
+      <label for="f-performed">Performed date *</label>
+      <input type="date" id="f-performed" name="performed_date" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('next_due_date', maintenance.next_due_date.isoformat() if maintenance and maintenance.next_due_date else '') %}
+    <div class="field">
+      <label for="f-due">Next due date</label>
+      <input type="date" id="f-due" name="next_due_date" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('cost', maintenance.cost if maintenance else '') %}
+    <div class="field">
+      <label for="f-cost">Cost</label>
+      <input type="number" step="any" id="f-cost" name="cost" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('odometer', maintenance.odometer if maintenance else '') %}
+    <div class="field">
+      <label for="f-odometer">Odometer (km)</label>
+      <input type="number" step="any" id="f-odometer" name="odometer" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('vendor', maintenance.vendor if maintenance else '') %}
+    <div class="field">
+      <label for="f-vendor">Vendor</label>
+      <input type="text" id="f-vendor" name="vendor" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('notes', maintenance.notes if maintenance else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create maintenance' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('maintenance.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

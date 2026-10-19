@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% set page_title = "Drivers" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set driver_statuses = ["active", "inactive", "suspended"] %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Drivers</h2>
+    <p class="muted">{{ total }} driver{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('drivers.create') }}">Register driver</a>
+</section>
+
+<section class="panel">
+  <form class="filter-bar" method="get" action="{{ url_for('drivers.list') }}">
+    <div class="field">
+      <label for="f-q">Search</label>
+      <input type="text" id="f-q" name="q" value="{{ q or '' }}" placeholder="Name, card, phone, license">
+    </div>
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        <option value="">All statuses</option>
+        {% for s in driver_statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field filter-actions">
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-outline" href="{{ url_for('drivers.list') }}">Reset</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Card</th><th>Phone</th><th>Status</th><th>Card status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for d in items %}
+      {% include "drivers/_row.html" %}
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No drivers found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page > 1 %}<a class="btn btn-outline btn-sm" href="{{ url_for('drivers.list', page=page-1, status=status, q=q) }}">Previous</a>{% endif %}
+  <span class="muted">Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn-outline btn-sm" href="{{ url_for('drivers.list', page=page+1, status=status, q=q) }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

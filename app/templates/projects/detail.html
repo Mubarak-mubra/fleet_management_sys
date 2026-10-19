@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% set page_title = project.label %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>{{ project.name }} <span class="card-code">{{ project.code }}</span></h2>
+    <p class="muted">
+      <span class="badge badge-{{ 'active' if project.status == 'active' else ('scheduled' if project.status in ('planned', 'on_hold') else 'completed' if project.status == 'completed' else 'cancelled') }}">{{ project.status|replace('_', ' ')|title }}</span>
+      {% if project.client %} · Client: {{ project.client }}{% endif %}
+      {% if project.location %} · {{ project.location }}{% endif %}
+    </p>
+    {% if project.start_date or project.end_date %}
+    <p class="muted">{{ project.start_date.strftime('%Y-%m-%d') if project.start_date else '—' }} → {{ project.end_date.strftime('%Y-%m-%d') if project.end_date else 'ongoing' }}</p>
+    {% endif %}
+  </div>
+  <div class="row-actions no-print">
+    <a class="btn btn-outline" href="{{ url_for('projects.edit', project_id=project.id) }}">Edit</a>
+    <button class="btn btn-outline" type="button" onclick="window.print()">Print / Save PDF</button>
+  </div>
+</section>
+
+<section class="panel no-print">
+  <form class="filter-bar" method="get" action="{{ url_for('projects.detail', project_id=project.id) }}">
+    <div class="field">
+      <label for="f-from">From</label>
+      <input type="date" id="f-from" name="date_from" value="{{ date_from or '' }}">
+    </div>
+    <div class="field">
+      <label for="f-to">To</label>
+      <input type="date" id="f-to" name="date_to" value="{{ date_to or '' }}">
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Apply</button>
+      <a class="btn btn-outline" href="{{ url_for('projects.download_csv', project_id=project.id) }}">Download CSV</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel report-sheet">
+  <div class="report-head">
+    <b>Cost report — {{ project.label }}</b>
+    {% if project.client or project.location %}<span class="muted">{{ project.client or '' }}{{ ' · ' if project.client and project.location else '' }}{{ project.location or '' }}</span>{% endif %}
+    <span class="muted">Period: {{ date_from or 'project start' }} to {{ date_to or 'today' }}</span>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><b>{{ report.fuel_total|currency }}</b> fuel ({{ '%g'|format(report.fuel_liters) }} L)</div>
+    <div class="stat"><b>{{ report.maintenance_total|currency }}</b> maintenance</div>
+    <div class="stat"><b>{{ report.expense_total|currency }}</b> other expenses</div>
+    <div class="stat stat-total"><b>{{ report.total|currency }}</b> total</div>
+  </div>
+  {% if report.distance_km and report.distance_km > 0 %}
+  <div class="stats-strip">
+    <div class="stat"><b>{{ '%g'|format(report.distance_km) }}</b> km driven</div>
+    {% if report.cost_per_km is not none %}
+    <div class="stat"><b>{{ report.cost_per_km|currency }}</b> per km</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <h3>Fuel ({{ report.fuel_logs|length }})</h3>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Vehicle</th><th>Supplier</th><th>Liters</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      {% for log in report.fuel_logs %}
+      <tr>
+        <td data-label="Date">{{ log.fuel_date.strftime('%Y-%m-%d') }}</td>
+        <td data-label="Vehicle">{{ log.vehicle.plate_number if log.vehicle else '—' }}</td>
+        <td data-label="Supplier">{{ log.supplier or '—' }}</td>
+        <td data-label="Liters">{{ '%g'|format(log.liters) if log.liters is not none else '—' }}</td>
+        <td data-label="Cost">{{ log.computed_total|currency }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="empty-state">No fuel booked to this project.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Maintenance ({{ report.maintenance_logs|length }})</h3>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Vehicle</th><th>Type</th><th>Description</th><th>Vendor</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      {% for log in report.maintenance_logs %}
+      <tr>
+        <td data-label="Date">{{ log.performed_date.strftime('%Y-%m-%d') }}</td>
+        <td data-label="Vehicle">{{ log.vehicle.plate_number if log.vehicle else '—' }}</td>
+        <td data-label="Type">{{ log.maintenance_type|title }}</td>
+        <td data-label="Description">{{ log.description }}</td>
+        <td data-label="Vendor">{{ log.vendor or '—' }}</td>
+        <td data-label="Cost">{{ (log.cost or 0)|currency }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No maintenance booked to this project.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Other expenses ({{ report.expenses|length }})</h3>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Vehicle</th><th>Category</th><th>Description</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for row in report.expenses %}
+      <tr>
+        <td data-label="Date">{{ row.expense_date.strftime('%Y-%m-%d') }}</td>
+        <td data-label="Vehicle">{{ row.vehicle.plate_number if row.vehicle else 'Fleet-wide' }}</td>
+        <td data-label="Category">{{ row.category|replace('_', ' ')|title }}</td>
+        <td data-label="Description">{{ row.description }}</td>
+        <td data-label="Amount">{{ (row.amount or 0)|currency }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="empty-state">No expenses booked to this project.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Trips ({{ report.trips|length }})</h3>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Vehicle</th><th>Driver</th><th>Route</th><th>Distance km</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for trip in report.trips %}
+      <tr>
+        <td data-label="Date">{{ trip.start_time.strftime('%Y-%m-%d') }}</td>
+        <td data-label="Vehicle">{{ trip.vehicle.plate_number if trip.vehicle else '—' }}</td>
+        <td data-label="Driver">{{ trip.driver_name }}</td>
+        <td data-label="Route">{{ trip.origin }} → {{ trip.destination }}</td>
+        <td data-label="Distance km">{{ '%g'|format(trip.distance_km) if trip.distance_km else '—' }}</td>
+        <td data-label="Status"><span class="badge badge-{{ trip.status }}">{{ trip.status|trip_status }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No trips booked to this project.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="report-total">
+    <b>Grand total: {{ report.total|currency }}</b>
+  </div>
+</section>
+
+{% if project.notes %}
+<section class="panel">
+  <h3>Notes</h3>
+  <p>{{ project.notes }}</p>
+</section>
+{% endif %}
+{% endblock %}

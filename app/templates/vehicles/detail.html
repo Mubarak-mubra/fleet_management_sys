@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% set page_title = "Vehicle detail" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>{{ vehicle.name }}</h2>
+    <div class="detail-meta">
+      <span class="badge badge-{{ vehicle.status }}">{{ vehicle.status|replace('_', ' ')|title }}</span>
+      <span class="badge">{{ vehicle.plate_number }}</span>
+      <span class="muted">{{ vehicle.vehicle_type|replace('_', ' ')|title }}</span>
+    </div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-outline" href="{{ url_for('vehicles.list') }}">Back</a>
+    <a class="btn" href="{{ url_for('vehicles.edit', vehicle_id=vehicle.id) }}">Edit</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="stats-strip">
+    <div class="stat"><b>{{ summary.trips }}</b> trips</div>
+    <div class="stat"><b>{{ summary.open_trips }}</b> open trips</div>
+    <div class="stat"><b>{{ "%.2f"|format(vehicle.total_fuel_liters) }} L</b> fuel</div>
+    {% if efficiency.interval_count %}
+    <div class="stat"><b>{{ "%.1f"|format(efficiency.avg_km_per_liter) }}</b> km/L efficiency</div>
+    {% endif %}
+    <div class="stat"><b>{{ vehicle.total_maintenance_cost|currency }}</b> maintenance cost</div>
+    <div class="stat"><b>{{ "%.0f"|format(vehicle.odometer or 0) }} km</b> odometer</div>
+  </div>
+
+  <div class="kv-grid">
+    <div class="kv"><b>Make</b>{{ vehicle.make or '—' }}</div>
+    <div class="kv"><b>Model</b>{{ vehicle.model or '—' }}</div>
+    <div class="kv"><b>Year</b>{{ vehicle.year if vehicle.year is not none else '—' }}</div>
+    <div class="kv"><b>Fuel capacity</b>{% if vehicle.fuel_capacity_liters %}{{ "%.2f"|format(vehicle.fuel_capacity_liters) }} L{% else %}—{% endif %}</div>
+    <div class="kv"><b>Odometer</b>{{ "%.0f"|format(vehicle.odometer or 0) }} km</div>
+    <div class="kv"><b>Created</b>{{ vehicle.created_at.strftime("%Y-%m-%d") if vehicle.created_at else '—' }}</div>
+  </div>
+  {% if vehicle.notes %}
+  <p class="muted">{{ vehicle.notes }}</p>
+  {% endif %}
+</section>
+
+<section class="panel section">
+  <h3>Trips ({{ vehicle.trips|length }})</h3>
+  <table>
+    <thead><tr><th>Driver</th><th>Route</th><th>Start</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for t in vehicle.trips|sort(attribute='start_time', reverse=true) %}
+      <tr>
+        <td data-label="Driver"><a href="{{ url_for('trips.detail', trip_id=t.id) }}">{{ t.driver_name }}</a></td>
+        <td data-label="Route">{{ t.origin }} &rarr; {{ t.destination }}</td>
+        <td data-label="Start">{% if t.start_time %}{{ t.start_time.strftime("%Y-%m-%d %H:%M") }}{% endif %}</td>
+        <td data-label="Status"><span class="badge badge-{{ t.status }}">{{ t.status|replace('_', ' ')|title }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty-state">No trips yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel section">
+  <h3>Fuel logs ({{ vehicle.fuel_logs|length }})</h3>
+  <table>
+    <thead><tr><th>Date</th><th>Liters</th><th>Total</th><th>Supplier</th></tr></thead>
+    <tbody>
+      {% for log in vehicle.fuel_logs|sort(attribute='fuel_date', reverse=true) %}
+      <tr>
+        <td data-label="Date">{{ log.fuel_date.strftime("%Y-%m-%d") if log.fuel_date else '' }}</td>
+        <td data-label="Liters">{{ "%.2f"|format(log.liters) }} L</td>
+        <td data-label="Total">{{ log.computed_total|currency }}</td>
+        <td data-label="Supplier">{{ log.supplier or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty-state">No fuel logs yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel section">
+  <h3>Maintenance ({{ vehicle.maintenance_logs|length }})</h3>
+  <table>
+    <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Cost</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for m in vehicle.maintenance_logs|sort(attribute='performed_date', reverse=true) %}
+      <tr>
+        <td data-label="Date"><a href="{{ url_for('maintenance.detail', maintenance_id=m.id) }}">{{ m.performed_date.strftime("%Y-%m-%d") if m.performed_date else '' }}</a></td>
+        <td data-label="Type">{{ m.maintenance_type|replace('_', ' ')|title }}</td>
+        <td data-label="Description">{{ m.description }}</td>
+        <td data-label="Cost">{{ (m.cost or 0)|currency }}</td>
+        <td data-label="Status"><span class="badge badge-{{ m.status }}">{{ m.status|replace('_', ' ')|title }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="empty-state">No maintenance records yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel section">
+  <h3>Expenses ({{ vehicle.expenses|length }})</h3>
+  <table>
+    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+    <tbody>
+      {% for e in vehicle.expenses|sort(attribute='expense_date', reverse=true) %}
+      <tr>
+        <td data-label="Date"><a href="{{ url_for('expenses.edit', expense_id=e.id) }}">{{ e.expense_date.strftime("%Y-%m-%d") if e.expense_date else '' }}</a></td>
+        <td data-label="Description">{{ e.description }}</td>
+        <td data-label="Category">{{ e.category|replace('_', ' ')|title }}</td>
+        <td data-label="Amount">{{ (e.amount or 0)|currency }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty-state">No expenses recorded for this vehicle.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

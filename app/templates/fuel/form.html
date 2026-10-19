@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% set page_title = "Edit fuel log" if mode == "edit" else "New fuel log" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('fuel.edit', log_id=log.id) }}{% else %}{{ url_for('fuel.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set current = form_data.get('vehicle_id', log.vehicle_id if log else '') %}
+    <div class="field">
+      <label for="f-vehicle">Vehicle *</label>
+      <select id="f-vehicle" name="vehicle_id" required>
+        <option value="">Select a vehicle…</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if current is not none and current|string == veh.id|string %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('project_id', log.project_id if log else '') %}
+    <div class="field">
+      <label for="f-project">Project</label>
+      <select id="f-project" name="project_id">
+        <option value="">No project</option>
+        {% for proj in projects %}
+        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
+        {% endfor %}
+      </select>
+      <small class="muted">Optional — e.g. fuel drawn at this job site goes here.</small>
+    </div>
+
+    {% set current = form_data.get('fuel_date', log.fuel_date.isoformat() if log and log.fuel_date else '') %}
+    <div class="field">
+      <label for="f-date">Fuel date *</label>
+      <input type="date" id="f-date" name="fuel_date" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('liters', log.liters if log else '') %}
+    <div class="field">
+      <label for="f-liters">Liters *</label>
+      <input type="number" step="any" min="0" id="f-liters" name="liters" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('cost_per_liter', log.cost_per_liter if log else '') %}
+    <div class="field">
+      <label for="f-cpl">Cost per liter</label>
+      <input type="number" step="any" id="f-cpl" name="cost_per_liter" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('odometer', log.odometer if log else '') %}
+    <div class="field">
+      <label for="f-odometer">Odometer (km)</label>
+      <input type="number" step="any" id="f-odometer" name="odometer" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('supplier', log.supplier if log else '') %}
+    <div class="field">
+      <label for="f-supplier">Supplier</label>
+      <input type="text" id="f-supplier" name="supplier" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('receipt_ref', log.receipt_ref if log else '') %}
+    <div class="field">
+      <label for="f-receipt">Receipt ref</label>
+      <input type="text" id="f-receipt" name="receipt_ref" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('notes', log.notes if log else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create fuel log' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('fuel.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

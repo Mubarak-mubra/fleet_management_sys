@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% set page_title = "Vehicles" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set vehicle_statuses = ["active", "maintenance", "inactive", "retired"] %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Vehicles</h2>
+    <p class="muted">{{ total }} vehicle{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('vehicles.create') }}">New vehicle</a>
+</section>
+
+<section class="panel">
+  <form class="filter-bar" method="get" action="{{ url_for('vehicles.list') }}">
+    <div class="field">
+      <label for="f-q">Search</label>
+      <input type="text" id="f-q" name="q" value="{{ q or '' }}" placeholder="Name, plate, make, model">
+    </div>
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        <option value="">All statuses</option>
+        {% for s in vehicle_statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-outline" href="{{ url_for('vehicles.list') }}">Clear</a>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Plate</th><th>Type</th><th>Status</th><th>Odometer</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      {% set v = item %}
+      {% include "vehicles/_row.html" %}
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No vehicles yet. <a href="{{ url_for('vehicles.create') }}">Create the first one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% set endpoint = "vehicles.list" %}
+  {% set filters = {"q": q, "status": status} %}
+  {% include "partials/pagination.html" %}
+</section>
+{% endblock %}

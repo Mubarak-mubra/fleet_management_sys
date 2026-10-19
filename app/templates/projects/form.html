@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set page_title = "Edit project" if mode == "edit" else "New project" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set project_statuses = ["planned", "active", "on_hold", "completed", "cancelled"] %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('projects.edit', project_id=project.id) }}{% else %}{{ url_for('projects.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {% set current = form_data.get('name', project.name if project else '') %}
+    <div class="field">
+      <label for="f-name">Project name *</label>
+      <input type="text" id="f-name" name="name" value="{{ current }}" placeholder="e.g. Ring Road Extension" required>
+    </div>
+
+    {% set current = form_data.get('code', project.code if project else '') %}
+    <div class="field">
+      <label for="f-code">Code</label>
+      <input type="text" id="f-code" name="code" value="{{ current }}" placeholder="Auto: PRJ-0001">
+      <small class="muted">Leave blank to auto-assign the next code.</small>
+    </div>
+
+    {% set current = form_data.get('client', project.client if project else '') %}
+    <div class="field">
+      <label for="f-client">Client</label>
+      <input type="text" id="f-client" name="client" value="{{ current }}" placeholder="e.g. Ministry of Roads">
+    </div>
+
+    {% set current = form_data.get('location', project.location if project else '') %}
+    <div class="field">
+      <label for="f-location">Location</label>
+      <input type="text" id="f-location" name="location" value="{{ current }}" placeholder="e.g. Mogadishu — Km12">
+    </div>
+
+    {% set current = form_data.get('start_date', project.start_date.isoformat() if project and project.start_date else '') %}
+    <div class="field">
+      <label for="f-start">Start date</label>
+      <input type="date" id="f-start" name="start_date" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('end_date', project.end_date.isoformat() if project and project.end_date else '') %}
+    <div class="field">
+      <label for="f-end">End date</label>
+      <input type="date" id="f-end" name="end_date" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('status', project.status if project else 'planned') %}
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        {% for s in project_statuses %}
+        <option value="{{ s }}" {% if current == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('notes', project.notes if project else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create project' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('projects.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

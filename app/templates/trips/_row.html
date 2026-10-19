@@ -1,0 +1,38 @@
+<tr>
+  <td data-label="Vehicle"><a href="{{ url_for('vehicles.detail', vehicle_id=t.vehicle_id) }}">{{ t.vehicle.plate_number if t.vehicle else t.vehicle_id }}</a></td>
+  <td data-label="Driver">{{ t.driver_name }}</td>
+  <td data-label="Purpose">{{ t.purpose }}</td>
+  <td data-label="Route">{{ t.origin }} &rarr; {{ t.destination }}</td>
+  <td data-label="Project">{% if t.project %}<a href="{{ url_for('projects.detail', project_id=t.project_id) }}">{{ t.project.code }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+  <td data-label="Start">{% if t.start_time %}{{ t.start_time.strftime("%Y-%m-%d %H:%M") }}{% endif %}</td>
+  <td data-label="End">{% if t.end_time %}{{ t.end_time.strftime("%Y-%m-%d %H:%M") }}{% else %}—{% endif %}</td>
+  <td data-label="Distance">{% if t.distance_km is not none %}{{ "%.1f"|format(t.distance_km) }} km{% else %}—{% endif %}</td>
+  <td data-label="Status"><span class="badge badge-{{ t.status }}">{{ t.status|trip_status }}</span></td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('trips.detail', trip_id=t.id) }}">View</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('trips.edit', trip_id=t.id) }}">Edit</a>
+      {% if t.status == 'planned' %}
+      <form method="post" action="{{ url_for('trips.start', trip_id=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm card-btn" type="submit">Start</button>
+      </form>
+      {% elif t.status == 'in_progress' %}
+      <form method="post" action="{{ url_for('trips.complete', trip_id=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm card-btn" type="submit">Complete</button>
+      </form>
+      {% endif %}
+      {% if t.status in ('planned', 'in_progress') %}
+      <form method="post" action="{{ url_for('trips.cancel', trip_id=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline btn-sm" type="submit">Cancel</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('trips.delete', trip_id=t.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

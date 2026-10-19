@@ -1,0 +1,18 @@
+<tr>
+  <td data-label="Date">{{ log.fuel_date.strftime("%Y-%m-%d") if log.fuel_date else '' }}</td>
+  <td data-label="Vehicle"><a href="{{ url_for('vehicles.detail', vehicle_id=log.vehicle_id) }}">{{ log.vehicle.plate_number if log.vehicle else log.vehicle_id }}</a></td>
+  <td data-label="Litres">{{ "%.2f"|format(log.liters) }} L</td>
+  <td data-label="Cost/L">{% if log.cost_per_liter is not none %}{{ log.cost_per_liter|currency }}{% else %}—{% endif %}</td>
+  <td data-label="Total">{{ log.computed_total|currency }}</td>
+  <td data-label="Supplier">{{ log.supplier or '—' }}</td>
+  <td data-label="Odometer">{% if log.odometer is not none %}{{ "%.0f"|format(log.odometer) }} km{% else %}—{% endif %}</td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('fuel.edit', log_id=log.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('fuel.delete', log_id=log.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

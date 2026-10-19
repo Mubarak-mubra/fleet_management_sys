@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% set page_title = "Monthly report" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Monthly report — {{ data.label }}</h2>
+    <p class="muted">{{ data.start.strftime('%Y-%m-%d') }} to {{ data.end.strftime('%Y-%m-%d') }}</p>
+  </div>
+  <div class="row-actions no-print">
+    <a class="btn btn-outline" href="{{ url_for('reports.monthly', month=prev_month) }}">← Prev</a>
+    <a class="btn btn-outline" href="{{ url_for('reports.monthly', month=next_month) }}">Next →</a>
+    <button class="btn btn-outline" type="button" onclick="window.print()">Print / Save PDF</button>
+  </div>
+</section>
+
+<section class="panel no-print">
+  <form class="filter-bar" method="get" action="{{ url_for('reports.monthly') }}">
+    <div class="field">
+      <label for="f-month">Month</label>
+      <input type="month" id="f-month" name="month" value="{{ month }}">
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Show</button>
+      <a class="btn btn-outline" href="{{ url_for('reports.monthly_csv', month=month) }}">Download CSV</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel report-sheet">
+  <div class="report-head">
+    <b>Fleet summary — {{ data.label }}</b>
+    <span class="muted">{{ data.start.strftime('%Y-%m-%d') }} to {{ data.end.strftime('%Y-%m-%d') }}</span>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><b>{{ data.fuel_total|currency }}</b> fuel ({{ '%g'|format(data.fuel_liters) }} L)</div>
+    <div class="stat"><b>{{ data.maintenance_total|currency }}</b> maintenance</div>
+    <div class="stat"><b>{{ data.expense_total|currency }}</b> other expenses</div>
+    <div class="stat"><b>{{ data.trip_count }}</b> trip{{ '' if data.trip_count == 1 else 's' }}</div>
+    <div class="stat stat-total"><b>{{ data.grand_total|currency }}</b> total</div>
+  </div>
+
+  <h3>By vehicle</h3>
+  <table>
+    <thead>
+      <tr><th>Vehicle</th><th>Plate</th><th>Fuel</th><th>Liters</th><th>Maintenance</th><th>Expenses</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      {% for entry in data.vehicles %}
+      <tr>
+        <td data-label="Vehicle">{{ entry.vehicle.name }}</td>
+        <td data-label="Plate">{{ entry.vehicle.plate_number }}</td>
+        <td data-label="Fuel">{{ entry.fuel.cost|currency }} ({{ entry.fuel.count }})</td>
+        <td data-label="Liters">{{ '%g'|format(entry.fuel.liters) }}</td>
+        <td data-label="Maintenance">{{ entry.maintenance.cost|currency }} ({{ entry.maintenance.count }})</td>
+        <td data-label="Expenses">{{ entry.expenses.cost|currency }} ({{ entry.expenses.count }})</td>
+        <td data-label="Total"><b>{{ entry.total|currency }}</b></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="empty-state">No costs recorded this month.</td></tr>
+      {% endfor %}
+      {% if data.unassigned_total %}
+      <tr>
+        <td data-label="Vehicle">Fleet-wide (no vehicle)</td>
+        <td data-label="Plate">—</td>
+        <td data-label="Fuel">—</td>
+        <td data-label="Liters">—</td>
+        <td data-label="Maintenance">—</td>
+        <td data-label="Expenses">{{ data.unassigned_total|currency }}</td>
+        <td data-label="Total"><b>{{ data.unassigned_total|currency }}</b></td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  {% if data.expense_by_category %}
+  <h3>Expenses by category</h3>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for category, amount in data.expense_by_category|dictsort %}
+      <tr>
+        <td data-label="Category">{{ category|replace('_', ' ')|title }}</td>
+        <td data-label="Amount">{{ amount|currency }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="report-total">
+    <b>Grand total: {{ data.grand_total|currency }}</b>
+  </div>
+</section>
+{% endblock %}

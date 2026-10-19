@@ -1,0 +1,28 @@
+<header class="navbar">
+  <h1 class="navbar-title">{{ page_title|default('Dashboard') }}</h1>
+  <div class="navbar-actions">
+    <span class="navbar-meta">Construction Fleet · No GPS</span>
+    {% if current_user.is_authenticated %}
+    {# Avatar is the only always-visible affordance. The menu reveals on
+       :hover (mouse) and :focus-within (tap/keyboard) so touch users are
+       never left without a way to sign out — no JS required. #}
+    <div class="user-menu">
+      <button type="button" class="user-avatar"
+              title="Signed in as {{ current_user.display_name }}"
+              aria-label="Account menu for {{ current_user.display_name }}">
+        {{ current_user.display_name[:1]|upper }}
+      </button>
+      <div class="user-menu-pop">
+        <span class="user-meta">
+          <b>{{ current_user.display_name }}</b>
+          <small>{{ current_user.role_label }}</small>
+        </span>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-outline btn-sm" type="submit">Sign out</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</header>

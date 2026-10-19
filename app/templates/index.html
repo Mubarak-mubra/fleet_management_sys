@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% set page_title = "Dashboard" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h2>Dashboard</h2>
+  <p class="muted">Fleet overview — vehicles, trips, fuel and maintenance.</p>
+</section>
+
+{# Four operational counts, not money: each card links to the list it
+   summarizes, and is tinted by what it reports so the eye can triage the
+   row at a glance. Money totals live on their own pages instead. #}
+<section class="kpi-grid">
+  <a class="kpi-card kpi-card--fleet" href="{{ url_for('vehicles.list') }}">
+    <span class="kpi-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    </span>
+    <span class="kpi-body">
+      <span class="kpi-value">{{ vehicle_count }}</span>
+      <span class="kpi-label">Total cars</span>
+      <span class="kpi-sub">In the fleet</span>
+    </span>
+  </a>
+
+  <a class="kpi-card kpi-card--ok" href="{{ url_for('vehicles.list', status='active') }}">
+    <span class="kpi-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/></svg>
+    </span>
+    <span class="kpi-body">
+      <span class="kpi-value">{{ available_count }}</span>
+      <span class="kpi-label">Available</span>
+      <span class="kpi-sub">Ready to dispatch</span>
+    </span>
+  </a>
+
+  <a class="kpi-card kpi-card--warn" href="{{ url_for('vehicles.list', status='maintenance') }}">
+    <span class="kpi-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5l-8.6 8.6a2.1 2.1 0 0 1-3-3z"/><path d="M14.7 6.3 17 4"/></svg>
+    </span>
+    <span class="kpi-body">
+      <span class="kpi-value">{{ maintenance_count }}</span>
+      <span class="kpi-label">Under maintenance</span>
+      <span class="kpi-sub">Off the road</span>
+    </span>
+  </a>
+
+  <a class="kpi-card kpi-card--info" href="{{ url_for('trips.list') }}">
+    <span class="kpi-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    </span>
+    <span class="kpi-body">
+      <span class="kpi-value">{{ today_trip_count }}</span>
+      <span class="kpi-label">Trips today</span>
+      <span class="kpi-sub">{{ today.strftime('%A %d %b') }}</span>
+    </span>
+  </a>
+</section>
+
+<section class="panel section">
+  <h3>Overdue maintenance ({{ overdue|length }})</h3>
+  {% if overdue %}
+  <table>
+    <thead><tr><th>Vehicle</th><th>Description</th><th>Next due</th></tr></thead>
+    <tbody>
+      {% for m in overdue %}
+      <tr>
+        <td><a href="{{ url_for('maintenance.detail', maintenance_id=m.id) }}">{{ m.vehicle.name if m.vehicle else m.vehicle_id }}</a></td>
+        <td>{{ m.description }}</td>
+        <td><span class="overdue">{{ m.next_due_date.strftime("%Y-%m-%d") if m.next_due_date else '' }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Nothing overdue — all maintenance is up to date.</p>
+  {% endif %}
+</section>
+
+<div class="panel-grid">
+  <section class="panel section">
+    <h3>Recent trips</h3>
+    <table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Driver</th><th>Destination</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in recent_trips %}
+        <tr>
+          <td data-label="Date"><a href="{{ url_for('trips.detail', trip_id=t.id) }}">{{ t.start_time.strftime("%Y-%m-%d") if t.start_time else '' }}</a></td>
+          <td data-label="Vehicle">{{ t.vehicle.plate_number if t.vehicle else t.vehicle_id }}</td>
+          <td data-label="Driver">{{ t.driver_name }}</td>
+          <td data-label="Destination">{{ t.destination }}</td>
+          <td data-label="Status"><span class="badge badge-{{ t.status }}">{{ t.status|trip_status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">No trips yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h3>Recent fuel</h3>
+    <table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Litres</th><th>Cost</th></tr></thead>
+      <tbody>
+        {% for log in recent_fuel %}
+        <tr>
+          <td data-label="Date">{{ log.fuel_date.strftime("%Y-%m-%d") if log.fuel_date else '' }}</td>
+          <td data-label="Vehicle">{{ log.vehicle.plate_number if log.vehicle else log.vehicle_id }}</td>
+          <td data-label="Litres">{{ "%.1f"|format(log.liters) }}</td>
+          <td data-label="Cost">{{ log.computed_total|currency }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="empty-state">No fuel logs yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

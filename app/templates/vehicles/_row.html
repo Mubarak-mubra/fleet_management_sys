@@ -1,0 +1,17 @@
+<tr>
+  <td data-label="Name">{{ v.name }}</td>
+  <td data-label="Plate">{{ v.plate_number }}</td>
+  <td data-label="Type">{{ v.vehicle_type|replace('_', ' ')|title }}</td>
+  <td data-label="Status"><span class="badge badge-{{ v.status }}">{{ v.status|replace('_', ' ')|title }}</span></td>
+  <td data-label="Odometer">{{ "%.0f"|format(v.odometer or 0) }} km</td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}">View</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('vehicles.edit', vehicle_id=v.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('vehicles.delete', vehicle_id=v.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

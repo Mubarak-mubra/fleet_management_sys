@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% set page_title = "Edit expense" if mode == "edit" else "New expense" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set expense_categories = ["insurance", "registration", "wages", "parking", "toll", "washing", "fine", "office", "parts", "other"] %}
+{% set payment_methods = ["cash", "card", "bank_transfer", "mobile_money", "other"] %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('expenses.edit', expense_id=expense.id) }}{% else %}{{ url_for('expenses.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set current = form_data.get('expense_date', expense.expense_date.isoformat() if expense and expense.expense_date else '') %}
+    <div class="field">
+      <label for="f-date">Date *</label>
+      <input type="date" id="f-date" name="expense_date" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('description', expense.description if expense else '') %}
+    <div class="field">
+      <label for="f-desc">Description *</label>
+      <input type="text" id="f-desc" name="description" value="{{ current }}" placeholder="What was this for?" required>
+    </div>
+
+    {% set current = form_data.get('amount', expense.amount if expense else '') %}
+    <div class="field">
+      <label for="f-amount">Amount *</label>
+      <input type="number" step="any" min="0" id="f-amount" name="amount" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('category', expense.category if expense else 'other') %}
+    <div class="field">
+      <label for="f-category">Category</label>
+      <select id="f-category" name="category">
+        {% for c in expense_categories %}
+        <option value="{{ c }}" {% if current == c %}selected{% endif %}>{{ c|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('vehicle_id', expense.vehicle_id if expense else '') %}
+    <div class="field">
+      <label for="f-vehicle">Vehicle</label>
+      <select id="f-vehicle" name="vehicle_id">
+        <option value="">Fleet-wide (no vehicle)</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if current is not none and current|string == veh.id|string %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+      <small class="muted">Leave empty for costs that apply to the whole fleet, e.g. office rent or fleet insurance.</small>
+    </div>
+
+    {% set current = form_data.get('project_id', expense.project_id if expense else '') %}
+    <div class="field">
+      <label for="f-project">Project</label>
+      <select id="f-project" name="project_id">
+        <option value="">No project</option>
+        {% for proj in projects %}
+        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
+        {% endfor %}
+      </select>
+      <small class="muted">Optional — book this cost to a job site for the project report.</small>
+    </div>
+
+    {% set current = form_data.get('payment_method', expense.payment_method if expense else '') %}
+    <div class="field">
+      <label for="f-pay">Payment method</label>
+      <select id="f-pay" name="payment_method">
+        <option value="">—</option>
+        {% for p in payment_methods %}
+        <option value="{{ p }}" {% if current == p %}selected{% endif %}>{{ p|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('vendor', expense.vendor if expense else '') %}
+    <div class="field">
+      <label for="f-vendor">Vendor</label>
+      <input type="text" id="f-vendor" name="vendor" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('receipt_ref', expense.receipt_ref if expense else '') %}
+    <div class="field">
+      <label for="f-receipt">Receipt ref</label>
+      <input type="text" id="f-receipt" name="receipt_ref" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('notes', expense.notes if expense else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create expense' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('expenses.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set page_title = "Projects" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set project_statuses = ["planned", "active", "on_hold", "completed", "cancelled"] %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Projects</h2>
+    <p class="muted">{{ total }} project{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('projects.create') }}">New project</a>
+</section>
+
+<section class="panel">
+  <form class="filter-bar" method="get" action="{{ url_for('projects.list') }}">
+    <div class="field">
+      <label for="f-q">Search</label>
+      <input type="text" id="f-q" name="q" value="{{ q or '' }}" placeholder="Name, code, client or location">
+    </div>
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        <option value="">All statuses</option>
+        {% for s in project_statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-outline" href="{{ url_for('projects.list') }}">Clear</a>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th><th>Name</th><th>Client</th><th>Location</th><th>Status</th><th>Dates</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in items %}
+      {% include "projects/_row.html" %}
+      {% else %}
+      <tr><td colspan="7" class="empty-state">No projects yet. <a href="{{ url_for('projects.create') }}">Add the first job site</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% set endpoint = "projects.list" %}
+  {% set filters = {"status": status, "q": q} %}
+  {% include "partials/pagination.html" %}
+</section>
+{% endblock %}

@@ -1,0 +1,18 @@
+<tr>
+  <td data-label="Code"><span class="card-code">{{ p.code }}</span></td>
+  <td data-label="Name">{{ p.name }}</td>
+  <td data-label="Client">{{ p.client or '—' }}</td>
+  <td data-label="Location">{{ p.location or '—' }}</td>
+  <td data-label="Status"><span class="badge badge-{{ 'active' if p.status == 'active' else ('scheduled' if p.status in ('planned', 'on_hold') else 'completed' if p.status == 'completed' else 'cancelled') }}">{{ p.status|replace('_', ' ')|title }}</span></td>
+  <td data-label="Dates">{{ p.start_date.strftime('%Y-%m-%d') if p.start_date else '—' }}{% if p.end_date %} → {{ p.end_date.strftime('%Y-%m-%d') }}{% endif %}</td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('projects.detail', project_id=p.id) }}">Report</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('projects.edit', project_id=p.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('projects.delete', project_id=p.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

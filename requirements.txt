@@ -1,0 +1,16 @@
+# --- runtime ---
+Flask>=3.0,<4
+Flask-SQLAlchemy>=3.1,<4
+Flask-Migrate>=4.0,<5
+python-dotenv>=1.0,<2
+
+# Auth + CSRF (app/security.py imports both)
+Flask-Login>=0.6,<1
+Flask-WTF>=1.2,<2
+
+# Production WSGI server (wsgi.py; `gunicorn wsgi:app`)
+gunicorn>=22,<27
+
+# --- test ---
+pytest>=8.0,<9
+pytest-cov>=5.0,<7

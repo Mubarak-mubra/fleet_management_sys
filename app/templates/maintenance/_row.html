@@ -1,0 +1,19 @@
+<tr>
+  <td data-label="Date">{{ m.performed_date.strftime("%Y-%m-%d") if m.performed_date else '' }}</td>
+  <td data-label="Vehicle"><a href="{{ url_for('vehicles.detail', vehicle_id=m.vehicle_id) }}">{{ m.vehicle.plate_number if m.vehicle else m.vehicle_id }}</a></td>
+  <td data-label="Type">{{ m.maintenance_type|replace('_', ' ')|title }}</td>
+  <td data-label="Description">{{ m.description }}</td>
+  <td data-label="Cost">{{ (m.cost or 0)|currency }}</td>
+  <td data-label="Status"><span class="badge badge-{{ m.status }}">{{ m.status|replace('_', ' ')|title }}</span></td>
+  <td data-label="Next due">{% if m.is_overdue %}<span class="overdue">{{ m.next_due_date.strftime("%Y-%m-%d") if m.next_due_date else '' }}</span>{% elif m.next_due_date %}{{ m.next_due_date.strftime("%Y-%m-%d") }}{% else %}—{% endif %}</td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('maintenance.detail', maintenance_id=m.id) }}">View</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('maintenance.edit', maintenance_id=m.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('maintenance.delete', maintenance_id=m.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

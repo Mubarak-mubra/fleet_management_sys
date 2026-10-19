@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% set page_title = "Server error" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<section class="panel error-panel">
+  <h2>500 — Server error</h2>
+  <p class="muted">Something went wrong on our side. Please try again later.</p>
+  <a class="btn" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+</section>
+{% endblock %}

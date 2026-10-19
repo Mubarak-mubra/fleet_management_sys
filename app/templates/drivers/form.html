@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% set page_title = "Edit driver" if mode == "edit" else "Register driver" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set driver_statuses = ["active", "inactive", "suspended"] %}
+{% set card_statuses = ["active", "lost", "expired"] %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('drivers.edit', driver_id=driver.id) }}{% else %}{{ url_for('drivers.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set current = form_data.get('name', driver.name if driver else '') %}
+    <div class="field">
+      <label for="f-name">Full name *</label>
+      <input type="text" id="f-name" name="name" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('card_code', driver.card_code if driver else '') %}
+    <div class="field">
+      <label for="f-card">Card code</label>
+      <input type="text" id="f-card" name="card_code" value="{{ current }}" placeholder="Leave blank to auto-assign">
+      <small class="muted">Unique fleet card issued to this driver. Leave blank to assign one automatically.</small>
+    </div>
+
+    {% set current = form_data.get('phone', driver.phone if driver else '') %}
+    <div class="field">
+      <label for="f-phone">Phone</label>
+      <input type="tel" id="f-phone" name="phone" value="{{ current }}" placeholder="+1 555 010 2030">
+    </div>
+
+    {% set current = form_data.get('license_number', driver.license_number if driver else '') %}
+    <div class="field">
+      <label for="f-license">License number</label>
+      <input type="text" id="f-license" name="license_number" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('status', driver.status if driver else 'active') %}
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        {% for s in driver_statuses %}
+        <option value="{{ s }}" {% if current == s %}selected{% endif %}>{{ s|replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('card_status', driver.card_status if driver else 'active') %}
+    <div class="field">
+      <label for="f-card-status">Card status</label>
+      <select id="f-card-status" name="card_status">
+        {% for s in card_statuses %}
+        <option value="{{ s }}" {% if current == s %}selected{% endif %}>{{ s|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('notes', driver.notes if driver else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Register driver' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('drivers.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

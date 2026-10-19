@@ -1,0 +1,17 @@
+<tr>
+  <td data-label="Date">{{ e.expense_date.strftime("%Y-%m-%d") if e.expense_date else '' }}</td>
+  <td data-label="Description">{{ e.description }}</td>
+  <td data-label="Category">{{ e.category|replace('_', ' ')|title }}</td>
+  <td data-label="Vehicle">{% if e.vehicle %}<a href="{{ url_for('vehicles.detail', vehicle_id=e.vehicle_id) }}">{{ e.vehicle.plate_number }}</a>{% else %}—{% endif %}</td>
+  <td data-label="Amount">{{ e.amount|currency }}</td>
+  <td data-label="Vendor">{{ e.vendor or '—' }}</td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('expenses.edit', expense_id=e.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('expenses.delete', expense_id=e.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

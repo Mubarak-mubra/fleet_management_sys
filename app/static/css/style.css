@@ -1,0 +1,561 @@
+:root {
+  --sidebar-w: 220px;
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --ink: #1f2430;
+  --muted: #6b7280;
+  --line: #e3e6ec;
+  --accent: #2563eb;
+  --accent-dark: #1d4ed8;
+  --ok: #16a34a;
+  --err: #dc2626;
+  --warn: #d97706;
+  --info: #0284c7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: #111827;
+  color: #e5e7eb;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+.sidebar-brand { padding: 0 16px 16px; border-bottom: 1px solid #1f2937; }
+.brand-mark { display: block; font-size: 20px; font-weight: 700; color: #fff; }
+.brand-sub { font-size: 11px; color: #9ca3af; }
+.sidebar-nav { display: flex; flex-direction: column; margin-top: 8px; }
+.sidebar-nav a {
+  color: #d1d5db;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+.sidebar-nav a:hover { background: #1f2937; color: #fff; text-decoration: none; }
+.sidebar-nav a.active { background: #1f2937; color: #fff; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); padding: 0 24px 40px; }
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.navbar-title { font-size: 20px; margin: 0; }
+.navbar-meta { font-size: 12px; color: var(--muted); }
+
+.page-head h2 { margin: 0 0 4px; font-size: 22px; }
+.muted { color: var(--muted); font-size: 14px; }
+
+/* Flash */
+.flash-stack { margin-bottom: 16px; }
+.flash {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+}
+.flash-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.flash-error   { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.flash-warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.flash-info    { background: #f0f9ff; color: #075985; border-color: #bae6fd; }
+
+/* Panels, tables */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+table { width: 100%; border-collapse: collapse; background: var(--panel); }
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+th { background: #f9fafb; font-weight: 600; color: var(--muted); }
+tr:hover td { background: #fafbfc; }
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  color: inherit;
+}
+.card:hover { border-color: var(--accent); text-decoration: none; }
+.card h3 { margin: 0 0 6px; font-size: 16px; }
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn:hover { background: var(--accent-dark); color: #fff; text-decoration: none; }
+.btn-danger { background: var(--err); }
+.btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+/* Forms */
+form.form { max-width: 640px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.error-panel { text-align: center; padding: 40px; }
+.pagination { display: flex; gap: 8px; margin-top: 16px; font-size: 14px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #eef2ff; color: #3730a3; }
+
+/* Task 5 UI */
+.page-head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.page-head-row .muted { margin: 2px 0 0; }
+
+.filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.filter-bar .field { margin: 0; min-width: 150px; }
+
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row-actions form { margin: 0; }
+.btn-sm { padding: 4px 9px; font-size: 12px; }
+
+.empty-state { text-align: center; color: var(--muted); padding: 26px 12px; }
+
+.badge.active, .badge.completed { background: #ecfdf5; color: #065f46; }
+.badge.maintenance, .badge.scheduled, .badge.in_progress { background: #fffbeb; color: #92400e; }
+.badge.inactive, .badge.cancelled { background: #f3f4f6; color: #374151; }
+.badge.retired { background: #fee2e2; color: #991b1b; }
+.badge.planned { background: #eff6ff; color: #1e40af; }
+
+.stats-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.stat { background: #f9fafb; border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; font-size: 12px; color: var(--muted); }
+.stat b { display: block; font-size: 17px; color: var(--ink); }
+
+.kv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 6px; }
+.kv { font-size: 14px; }
+.kv b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+.detail-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.section { margin-top: 16px; }
+.section h3 { margin: 0 0 10px; font-size: 15px; }
+
+.alert-overdue { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
+.overdue { color: var(--err); font-weight: 600; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; max-width: 760px; }
+.form-grid .field { margin-bottom: 14px; }
+.field-wide { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 8px; }
+
+.pagination { gap: 12px; align-items: center; }
+.page-info { color: var(--muted); }
+.page-disabled { color: #9ca3af; }
+
+/* ---- Mobile navigation ------------------------------------------------
+   The sidebar is desktop-only. At <=900px it is removed from the layout and
+   the bottom navigation takes over, which is what makes this usable one-
+   handed on a phone. The bottomnav is always in the DOM (no JS switching),
+   just display:none at desktop widths. */
+.bottomnav { display: none; }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 0 16px; }
+
+  .bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background: #111827;
+    border-top: 1px solid #1f2937;
+    /* iOS home indicator / Android gesture bar */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bottomnav a {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    /* comfortable tap target, >= 48px tall */
+    min-height: 52px;
+    padding: 6px 2px;
+    color: #9ca3af;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .bottomnav a:hover { text-decoration: none; }
+  .bottomnav a.active { color: #fff; }
+  .bottomnav svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .bottomnav a.active svg { stroke: #60a5fa; }
+
+  /* keep the last row clear of the fixed bar */
+  .main { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ---- Phone-sized refinements ------------------------------------------ */
+@media (max-width: 640px) {
+  .main { padding: 0 12px; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+
+  .navbar { padding: 14px 0 10px; margin-bottom: 14px; }
+  .navbar-title { font-size: 18px; }
+  .navbar-meta { display: none; }        /* decorative — drop it on small screens */
+
+  .page-head h2 { font-size: 19px; }
+  .panel { padding: 12px; }
+
+  /* Tables become stacked cards. Every <td> carries data-label="Column", so
+     CSS can rebuild each row as a labelled card without duplicating markup —
+     desktop keeps a real <table>. */
+  table, tbody, tr, td { display: block; }
+  thead { display: none; }          /* column headers are now the data-labels */
+
+  tbody tr {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+
+  td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 0;
+    border: none;
+    font-size: 14px;
+    text-align: right;
+    white-space: normal;
+  }
+  /* the column name, e.g. "Plate" */
+  td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: left;
+  }
+  td:not([data-label])::before { content: none; }   /* action rows, empty states */
+
+  /* First cell is the record's title line */
+  td:first-child {
+    font-weight: 600;
+    font-size: 15px;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Action buttons: full-width, stacked, easy to hit */
+  td.cell-actions { display: block; padding-top: 10px; }
+  .cell-actions .row-actions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .cell-actions .row-actions form { width: 100%; }
+  .cell-actions .row-actions a,
+  .cell-actions .row-actions button,
+  .cell-actions .row-actions form .btn { width: 100%; justify-content: center; }
+
+  .empty-state { padding: 18px 8px; }
+
+  /* Touch targets */
+  .btn { padding: 11px 16px; font-size: 15px; min-height: 44px; }
+  .btn-sm { padding: 9px 12px; font-size: 13px; min-height: 40px; }
+  .row-actions { gap: 8px; }
+  .row-actions a, .row-actions button { display: inline-flex; align-items: center; }
+
+  /* Forms: full-width controls, 16px text so iOS does not auto-zoom on focus */
+  .form-grid { grid-template-columns: 1fr; }
+  .field input, .field select, .field textarea { font-size: 16px; padding: 11px 12px; }
+  .form-actions .btn { width: 100%; }
+
+  /* Filters stack vertically, full width */
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-bar .field { min-width: 0; width: 100%; }
+  .filter-bar .btn { width: 100%; }
+
+  /* Two-up KPI cards read better than one lonely column */
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-value { font-size: 19px; }
+
+  .card-grid { grid-template-columns: 1fr; }
+  .kv-grid { grid-template-columns: 1fr 1fr; }
+
+  .pagination { justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .page-info { width: 100%; text-align: center; order: -1; }
+}
+
+/* Very small phones (iPhone SE etc.) — keep 2 KPI columns but shrink type */
+@media (max-width: 380px) {
+  .kpi-value { font-size: 17px; }
+  .bottomnav a { font-size: 9px; }
+  .bottomnav svg { width: 20px; height: 20px; }
+}
+
+/* ---- dashboard KPI row ---------------------------------------------------
+   Four operational counts in a row: icon badge, big number, label, then a
+   muted sub-line. Each card carries a --tone that tints its badge, hairline
+   top border and hover state, so the eye can triage the row without reading
+   every label. Grid is 4-up on desktop, 2-up on a phone. */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  --tone: var(--accent);
+  --tone-soft: #eff6ff;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 15px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: inherit;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--tone);
+  opacity: .85;
+}
+.kpi-card:hover {
+  border-color: var(--tone);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, .07);
+  text-decoration: none;
+}
+.kpi-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--tone-soft);
+  color: var(--tone);
+}
+.kpi-icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kpi-body { min-width: 0; display: block; }
+.kpi-value { display: block; font-size: 24px; font-weight: 700; line-height: 1.15; color: var(--ink); }
+.kpi-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.kpi-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tones: green = usable, amber = off the road, slate = out today. */
+.kpi-card--fleet { --tone: var(--ink); --tone-soft: #f3f4f6; }
+.kpi-card--ok { --tone: var(--ok); --tone-soft: #ecfdf5; }
+.kpi-card--warn { --tone: var(--warn); --tone-soft: #fffbeb; }
+.kpi-card--info { --tone: var(--info); --tone-soft: #f0f9ff; }
+
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  /* Narrow phones: 2-up would crush the label, so stack to one column. */
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
+
+/* ---- More tab (mobile overflow for Maintenance/Drivers) ----------------- */
+.more-list { display: flex; flex-direction: column; }
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 6px;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+}
+.more-list .more-item:last-child { border-bottom: none; }
+.more-item:hover { text-decoration: none; background: var(--bg, #f9fafb); }
+.more-icon {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: var(--accent, #4f46e5);
+}
+.more-icon svg {
+  width: 22px; height: 22px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.more-body { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.more-body b { font-size: 15px; }
+.more-body small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.more-chevron { flex: 0 0 auto; font-size: 22px; color: var(--muted); line-height: 1; }
+
+/* ---- Fleet card code badge (drivers) ------------------------------------ */
+.card-code {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #f3f4f6;
+  color: var(--ink);
+}
+
+/* ---- signed-in user menu ---------------------------------------------
+   At rest only the avatar circle shows. The card reveals on :hover for
+   mice and on :focus-within for tap/keyboard, so touch users still reach
+   Sign out. Both selectors are needed: iOS Safari focuses a <button> on
+   tap inconsistently but does apply sticky :hover, while desktop relies
+   on :hover and keyboard users rely on :focus-within. No JS involved. */
+.user-menu { position: relative; display: flex; }
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  padding: 0;
+  background: #111827; color: #fff;
+  font: inherit; font-size: 13px; font-weight: 700;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.user-avatar:hover, .user-avatar:focus-visible {
+  border-color: var(--accent);
+}
+.user-menu-pop {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 172px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, .14);
+  z-index: 60;                 /* above page panels; bottomnav is 40 */
+}
+.user-menu:hover .user-menu-pop,
+.user-menu:focus-within .user-menu-pop { display: flex; }
+.user-meta { display: flex; flex-direction: column; line-height: 1.15; }
+.user-meta b { font-size: 13px; }
+.user-meta small { font-size: 11px; color: var(--muted); }
+.logout-form { margin: 0; }
+
+/* ---- login screen ------------------------------------------------------ */
+.auth-wrap { display: grid; place-items: center; min-height: 70vh; padding: 24px 0; }
+.auth-card { width: 100%; max-width: 420px; padding: 28px; }
+.auth-head { text-align: center; margin-bottom: 20px; }
+.auth-head h2 { margin: 10px 0 4px; }
+.auth-mark {
+  display: inline-grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 12px;
+  background: #111827;
+}
+.auth-mark svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.auth-foot { text-align: center; margin-top: 16px; font-size: 13px; }
+
+/* Signed-out shell: login renders no sidebar/navbar/tab bar, so .main must
+   drop the sidebar offset and the 72px tab-bar clearance, and the card
+   centres itself in the full viewport. Higher specificity than the
+   .main rules above, including the ones inside media queries. */
+.auth-page .main { margin-left: 0; padding: 0 16px; }
+.auth-page .auth-wrap { min-height: 100vh; }
+
+/* ---- reports / print ---------------------------------------------------- */
+.no-print { display: none !important; }
+.stat-total { background: #111827; border-color: #111827; color: #fff; }
+.stat-total b { color: #fff; }
+.report-sheet h3 { margin: 18px 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.report-head { display: flex; flex-direction: column; gap: 2px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 2px solid var(--line); font-size: 14px; }
+.report-total { margin-top: 16px; padding-top: 10px; border-top: 2px solid var(--line); text-align: right; font-size: 16px; }
+
+@media print {
+  .sidebar, .navbar, .bottomnav, .flash-wrap, .no-print, .filter-bar,
+  .row-actions, .cell-actions, .btn { display: none !important; }
+  .main { margin-left: 0 !important; padding: 0 !important; }
+  .panel { border: none; box-shadow: none; padding: 0; }
+  .report-sheet table { page-break-inside: auto; }
+  .report-sheet tr { page-break-inside: avoid; }
+  body { background: #fff; }
+}

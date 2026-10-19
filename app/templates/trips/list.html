@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% set page_title = "Trips" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set trip_statuses = ["planned", "in_progress", "completed", "cancelled"] %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Trips</h2>
+    <p class="muted">{{ total }} trip{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('trips.create') }}">New trip</a>
+</section>
+
+<section class="panel">
+  <form class="filter-bar" method="get" action="{{ url_for('trips.list') }}">
+    <div class="field">
+      <label for="f-vehicle">Vehicle</label>
+      <select id="f-vehicle" name="vehicle_id">
+        <option value="">All vehicles</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if vehicle_id == veh.id %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-project">Project</label>
+      <select id="f-project" name="project_id">
+        <option value="">All projects</option>
+        {% for p in projects %}
+        <option value="{{ p.id }}" {% if project_id == p.id %}selected{% endif %}>{{ p.code }} — {{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        <option value="">All statuses</option>
+        {% for s in trip_statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s|trip_status }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-outline" href="{{ url_for('trips.list') }}">Clear</a>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Vehicle</th><th>Driver</th><th>Purpose</th><th>Route</th><th>Project</th><th>Start</th><th>End</th><th>Distance</th><th>Status</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      {% set t = item %}
+      {% include "trips/_row.html" %}
+      {% else %}
+      <tr><td colspan="10" class="empty-state">No trips match these filters. <a href="{{ url_for('trips.list') }}">Clear filters</a> or <a href="{{ url_for('trips.create') }}">create a new trip</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% set endpoint = "trips.list" %}
+  {% set filters = {"vehicle_id": vehicle_id, "status": status, "project_id": project_id} %}
+  {% include "partials/pagination.html" %}
+</section>
+{% endblock %}

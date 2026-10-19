@@ -1,0 +1,17 @@
+<tr>
+  <td data-label="Name">{{ d.name }}</td>
+  <td data-label="Card"><span class="card-code">{{ d.card_code }}</span></td>
+  <td data-label="Phone">{{ d.phone or '—' }}</td>
+  <td data-label="Status"><span class="badge badge-{{ d.status }}">{{ d.status|replace('_', ' ')|title }}</span></td>
+  <td data-label="Card status"><span class="badge badge-{{ 'active' if d.card_status == 'active' else 'inactive' }}">{{ d.card_status|title }}</span></td>
+  <td class="cell-actions">
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('drivers.detail', driver_id=d.id) }}">View</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('drivers.edit', driver_id=d.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('drivers.delete', driver_id=d.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>

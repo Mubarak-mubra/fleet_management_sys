@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local data — holds live records AND password hashes. Never commit.
+instance/
+backups/
+*.db
+*.sqlite3
+
+# Environment / secrets
+.env
+.flaskenv.local
+
+# Agent work logs — build/review transcripts, not part of the application
+architect_mailbox.md
+builder_mailbox.md
+reviewer_mailbox.md
+
+# Tooling
+.pytest_cache/
+.coverage
+htmlcov/
+*.log

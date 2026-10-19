@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% set page_title = "Edit trip" if mode == "edit" else "New trip" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% set trip_statuses = ["planned", "in_progress", "completed", "cancelled"] %}
+<section class="page-head">
+  <h2>{{ page_title }}</h2>
+</section>
+
+<section class="panel">
+  <form class="form form-grid" method="post" action="{% if mode == 'edit' %}{{ url_for('trips.edit', trip_id=trip.id) }}{% else %}{{ url_for('trips.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set current = form_data.get('vehicle_id', trip.vehicle_id if trip else '') %}
+    <div class="field">
+      <label for="f-vehicle">Vehicle *</label>
+      <select id="f-vehicle" name="vehicle_id" required>
+        <option value="">Select a vehicle…</option>
+        {% for veh in vehicles %}
+        <option value="{{ veh.id }}" {% if current is not none and current|string == veh.id|string %}selected{% endif %}>{{ veh.plate_number }} — {{ veh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('project_id', trip.project_id if trip else '') %}
+    <div class="field">
+      <label for="f-project">Project</label>
+      <select id="f-project" name="project_id">
+        <option value="">No project</option>
+        {% for proj in projects %}
+        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
+        {% endfor %}
+      </select>
+      <small class="muted">Optional — book this trip to a job site for the project report.</small>
+    </div>
+
+    {% set current = form_data.get('status', trip.status if trip else '') %}
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status" name="status">
+        {% for s in trip_statuses %}
+        <option value="{{ s }}" {% if current == s %}selected{% endif %}>{{ s|trip_status }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% set current = form_data.get('driver_id', trip.driver_id if trip else '') %}
+    <div class="field">
+      <label for="f-driver">Driver *</label>
+      {% if drivers %}
+      <select id="f-driver" name="driver_id" required>
+        <option value="">Select a driver…</option>
+        {% for d in drivers %}
+        <option value="{{ d.id }}" {% if current is not none and current|string == d.id|string %}selected{% endif %}>{{ d.name }} — {{ d.card_code }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <p class="muted">No drivers registered yet. <a href="{{ url_for('drivers.create') }}">Register a driver</a> first.</p>
+      {% endif %}
+    </div>
+
+    {% set current = form_data.get('purpose', trip.purpose if trip else '') %}
+    <div class="field">
+      <label for="f-purpose">Purpose *</label>
+      <input type="text" id="f-purpose" name="purpose" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('origin', trip.origin if trip else '') %}
+    <div class="field">
+      <label for="f-origin">Origin *</label>
+      <input type="text" id="f-origin" name="origin" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('destination', trip.destination if trip else '') %}
+    <div class="field">
+      <label for="f-destination">Destination *</label>
+      <input type="text" id="f-destination" name="destination" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('start_time', trip.start_time.strftime('%Y-%m-%dT%H:%M') if trip and trip.start_time else '') %}
+    <div class="field">
+      <label for="f-start">Start time *</label>
+      <input type="datetime-local" id="f-start" name="start_time" value="{{ current }}" required>
+    </div>
+
+    {% set current = form_data.get('end_time', trip.end_time.strftime('%Y-%m-%dT%H:%M') if trip and trip.end_time else '') %}
+    <div class="field">
+      <label for="f-end">End time</label>
+      <input type="datetime-local" id="f-end" name="end_time" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('distance_km', trip.distance_km if trip else '') %}
+    <div class="field">
+      <label for="f-distance">Distance (km)</label>
+      <input type="number" step="any" id="f-distance" name="distance_km" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('odometer_start', trip.odometer_start if trip else '') %}
+    <div class="field">
+      <label for="f-odometer-start">Odometer start</label>
+      <input type="number" step="any" id="f-odometer-start" name="odometer_start" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('odometer_end', trip.odometer_end if trip else '') %}
+    <div class="field">
+      <label for="f-odometer-end">Odometer end</label>
+      <input type="number" step="any" id="f-odometer-end" name="odometer_end" value="{{ current }}">
+    </div>
+
+    {% set current = form_data.get('notes', trip.notes if trip else '') %}
+    <div class="field field-wide">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" name="notes" rows="3">{{ current }}</textarea>
+    </div>
+
+    <div class="form-actions field-wide">
+      <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create trip' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('trips.list') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

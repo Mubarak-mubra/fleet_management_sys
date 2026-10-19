@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set page_title = "Maintenance detail" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>{{ maintenance.description }}</h2>
+    <div class="detail-meta">
+      <span class="badge badge-{{ maintenance.status }}">{{ maintenance.status|replace('_', ' ')|title }}</span>
+      <span class="badge">{{ maintenance.maintenance_type|replace('_', ' ')|title }}</span>
+      <span class="muted">{{ maintenance.vehicle.plate_number if maintenance.vehicle else '' }}</span>
+    </div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-outline" href="{{ url_for('maintenance.list') }}">Back</a>
+    <a class="btn" href="{{ url_for('maintenance.edit', maintenance_id=maintenance.id) }}">Edit</a>
+  </div>
+</section>
+
+{% if maintenance.is_overdue %}
+<div class="alert-overdue">Overdue — next due {{ maintenance.next_due_date.strftime("%Y-%m-%d") if maintenance.next_due_date else '' }}.</div>
+{% endif %}
+
+<section class="panel">
+  <div class="stats-strip">
+    <div class="stat"><b>{{ (maintenance.cost or 0)|currency }}</b> cost</div>
+    <div class="stat"><b>{% if maintenance.performed_date %}{{ maintenance.performed_date.strftime("%Y-%m-%d") }}{% else %}—{% endif %}</b> performed</div>
+    <div class="stat"><b>{% if maintenance.next_due_date %}{{ maintenance.next_due_date.strftime("%Y-%m-%d") }}{% else %}—{% endif %}</b> next due</div>
+  </div>
+
+  <div class="kv-grid">
+    <div class="kv"><b>Vehicle</b><a href="{{ url_for('vehicles.detail', vehicle_id=maintenance.vehicle_id) }}">{{ maintenance.vehicle.name if maintenance.vehicle else maintenance.vehicle_id }}</a></div>
+    <div class="kv"><b>Type</b>{{ maintenance.maintenance_type|replace('_', ' ')|title }}</div>
+    <div class="kv"><b>Vendor</b>{{ maintenance.vendor or '—' }}</div>
+    <div class="kv"><b>Odometer</b>{% if maintenance.odometer is not none %}{{ "%.0f"|format(maintenance.odometer) }} km{% else %}—{% endif %}</div>
+    <div class="kv"><b>Status</b>{{ maintenance.status|replace('_', ' ')|title }}</div>
+    <div class="kv"><b>Created</b>{{ maintenance.created_at.strftime("%Y-%m-%d") if maintenance.created_at else '—' }}</div>
+  </div>
+  {% if maintenance.notes %}
+  <p class="muted">{{ maintenance.notes }}</p>
+  {% endif %}
+</section>
+{% endblock %}

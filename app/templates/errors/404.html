@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% set page_title = "Not found" %}
+
+{% block title %}Not Found{% endblock %}
+
+{% block content %}
+<section class="panel error-panel">
+  <h2>404 — Page not found</h2>
+  <p class="muted">The page you requested does not exist.</p>
+  <a class="btn" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+</section>
+{% endblock %}

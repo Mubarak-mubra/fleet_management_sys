@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% set page_title = "Trip detail" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Trip to {{ trip.destination }}</h2>
+    <div class="detail-meta">
+      <span class="badge badge-{{ trip.status }}">{{ trip.status|trip_status }}</span>
+      <span class="muted">{{ trip.origin }} &rarr; {{ trip.destination }}</span>
+    </div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-outline" href="{{ url_for('trips.list') }}">Back</a>
+    <a class="btn" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="stats-strip">
+    <div class="stat"><b>{{ trip.duration_hours|round(1) if trip.duration_hours is not none else '—' }}</b> hours</div>
+    <div class="stat"><b>{% if trip.distance_km is not none %}{{ "%.1f"|format(trip.distance_km) }} km{% else %}—{% endif %}</b> distance</div>
+    <div class="stat"><b>{{ trip.vehicle.plate_number if trip.vehicle else '—' }}</b> vehicle</div>
+    <div class="stat"><b>{{ cost.total|currency }}</b> trip cost{% if cost.open %} <span class="muted">(so far)</span>{% endif %}</div>
+    {% if cost.cost_per_km is not none %}
+    <div class="stat"><b>{{ currency_symbol() }}{{ "%.2f"|format(cost.cost_per_km) }}/km</b> cost per km</div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="panel">
+  <h3>Trip cost</h3>
+  <div class="kv-grid">
+    <div class="kv"><b>Fuel in window</b>{{ cost.fuel_cost|currency }}</div>
+    <div class="kv"><b>Maintenance in window</b>{{ cost.maintenance_cost|currency }}</div>
+    <div class="kv"><b>Total</b>{{ cost.total|currency }}</div>
+    <div class="kv"><b>Distance</b>{% if cost.distance_km > 0 %}{{ "%.1f"|format(cost.distance_km) }} km{% else %}—{% endif %}</div>
+    <div class="kv"><b>Cost per km</b>{% if cost.cost_per_km is not none %}{{ currency_symbol() }}{{ "%.2f"|format(cost.cost_per_km) }}/km{% else %}—{% endif %}</div>
+    <div class="kv"><b>Cost window</b>{{ cost.start.strftime("%Y-%m-%d") }} &rarr; {{ cost.end.strftime("%Y-%m-%d") }}{% if cost.open %} (open){% endif %}</div>
+  </div>
+  <p class="muted">Fuel and maintenance booked to {{ trip.vehicle.plate_number if trip.vehicle else 'this vehicle' }} while the trip ran. Other expenses (insurance, wages, office) are period costs and are not charged to a single trip.</p>
+</section>
+
+<section class="panel">
+  <div class="kv-grid">
+    <div class="kv"><b>Vehicle</b><a href="{{ url_for('vehicles.detail', vehicle_id=trip.vehicle_id) }}">{{ trip.vehicle.name if trip.vehicle else trip.vehicle_id }}</a></div>
+    <div class="kv"><b>Driver</b>{{ trip.driver_name }}</div>
+    <div class="kv"><b>Purpose</b>{{ trip.purpose }}</div>
+    <div class="kv"><b>Origin</b>{{ trip.origin }}</div>
+    <div class="kv"><b>Destination</b>{{ trip.destination }}</div>
+    <div class="kv"><b>Project</b>{% if trip.project %}<a href="{{ url_for('projects.detail', project_id=trip.project_id) }}">{{ trip.project.code }} — {{ trip.project.name }}</a>{% else %}<span class="muted">No project (yard / fleet run)</span>{% endif %}</div>
+    <div class="kv"><b>Start</b>{% if trip.start_time %}{{ trip.start_time.strftime("%Y-%m-%d %H:%M") }}{% else %}—{% endif %}</div>
+    <div class="kv"><b>End</b>{% if trip.end_time %}{{ trip.end_time.strftime("%Y-%m-%d %H:%M") }}{% else %}—{% endif %}</div>
+    <div class="kv"><b>Odometer start</b>{% if trip.odometer_start is not none %}{{ "%.0f"|format(trip.odometer_start) }} km{% else %}—{% endif %}</div>
+    <div class="kv"><b>Odometer end</b>{% if trip.odometer_end is not none %}{{ "%.0f"|format(trip.odometer_end) }} km{% else %}—{% endif %}</div>
+    <div class="kv"><b>Distance</b>{% if trip.distance_km is not none %}{{ "%.1f"|format(trip.distance_km) }} km{% else %}—{% endif %}</div>
+  </div>
+  {% if trip.notes %}
+  <p class="muted">{{ trip.notes }}</p>
+  {% endif %}
+</section>
+{% endblock %}

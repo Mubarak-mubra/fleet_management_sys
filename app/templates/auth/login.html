@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set page_title = "Sign in" %}
+
+{# Signed-out shell: no sidebar, no app navbar, no tab bar. The form stands
+   alone in a full-height centred card — see .auth-page in style.css. #}
+{% block body_class %}auth-page{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block bottomnav %}{% endblock %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card panel">
+    <div class="auth-head">
+      <span class="auth-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 17h2l1-2h4l1 2h4l1-2h4"/><path d="M5 15V9l3-4h8l3 4v6"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg>
+      </span>
+      <h2>Vehicle Management</h2>
+      <p class="muted">Sign in to reach the fleet records.</p>
+    </div>
+
+    <form class="form" method="post" action="{{ url_for('auth.login', next=request.args.get('next', '')) }}" autocomplete="on">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="field">
+        <label for="f-username">Username</label>
+        <input type="text" id="f-username" name="username"
+               value="{{ username or '' }}"
+               autocomplete="username" autocapitalize="none"
+               autocorrect="off" spellcheck="false" required autofocus>
+      </div>
+
+      <div class="field">
+        <label for="f-password">Password</label>
+        <input type="password" id="f-password" name="password"
+               autocomplete="current-password" required>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="submit">Sign in</button>
+      </div>
+    </form>
+
+    <p class="muted auth-foot">Fleet records are private to signed-in users.</p>
+  </div>
+</section>
+{% endblock %}
