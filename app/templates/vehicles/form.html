@@ -4,7 +4,6 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-{% set vehicle_types = ["excavator", "dump_truck", "loader", "bulldozer", "crane", "concrete_mixer", "other"] %}
 {% set vehicle_statuses = ["active", "maintenance", "inactive", "retired"] %}
 <section class="page-head">
   <h2>{{ page_title }}</h2>
@@ -28,11 +27,16 @@
     {% set current = form_data.get('vehicle_type', vehicle.vehicle_type if vehicle else '') %}
     <div class="field">
       <label for="f-type">Type</label>
-      <select id="f-type" name="vehicle_type">
-        {% for t in vehicle_types %}
-        <option value="{{ t }}" {% if current == t %}selected{% endif %}>{{ t|replace('_', ' ')|title }}</option>
+      {# Free text — the user invents the type ("Tipper", "Grader"...).
+         The datalist only suggests types already used in this fleet. #}
+      <input type="text" id="f-type" name="vehicle_type" value="{{ current }}"
+             list="vehicle-type-options" required placeholder="e.g. Tipper, Grader, Excavator"
+             autocomplete="off">
+      <datalist id="vehicle-type-options">
+        {% for t in types|default([]) %}
+        <option value="{{ t }}"></option>
         {% endfor %}
-      </select>
+      </datalist>
     </div>
 
     {% set current = form_data.get('status', vehicle.status if vehicle else '') %}

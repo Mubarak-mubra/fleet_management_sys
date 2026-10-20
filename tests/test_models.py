@@ -9,7 +9,6 @@ from app.models import (
     MAINTENANCE_TYPES,
     TRIP_STATUSES,
     VEHICLE_STATUSES,
-    VEHICLE_TYPES,
     FuelLog,
     MaintenanceLog,
     TripLog,
@@ -206,10 +205,6 @@ def test_property_is_overdue(make_maintenance):
 
 
 def test_enum_tuples_exported_and_match_spec():
-    assert VEHICLE_TYPES == (
-        "excavator", "dump_truck", "loader", "bulldozer",
-        "crane", "concrete_mixer", "other",
-    )
     assert VEHICLE_STATUSES == ("active", "maintenance", "inactive", "retired")
     assert TRIP_STATUSES == ("planned", "in_progress", "completed", "cancelled")
     assert MAINTENANCE_TYPES == ("service", "repair", "inspection", "tire", "battery", "other")

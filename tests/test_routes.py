@@ -126,11 +126,25 @@ def test_rule3_invalid_status_flashed(client):
     assert "Invalid vehicle status" in body
 
 
-def test_rule3_invalid_type_flashed(client):
-    body = flash_page(client, client.post(
+def test_custom_vehicle_type_accepted(client):
+    """Type is user-invented text ("Tipper", "Grader"...) — no fixed list."""
+    resp = client.post(
         "/vehicles/new",
-        data={"name": "X", "plate_number": "GC-R3b", "vehicle_type": "submarine"}))
-    assert "Invalid vehicle type" in body
+        data={"name": "X", "plate_number": "GC-R3b", "vehicle_type": "Water Tanker"},
+    )
+    assert resp.status_code == 302
+    from app.models import Vehicle
+
+    saved = Vehicle.query.filter_by(plate_number="GC-R3b").one()
+    assert saved.vehicle_type == "Water Tanker"
+
+
+def test_vehicle_form_suggests_previously_used_types(client, make_vehicle):
+    """The free-text type field whispers back types already in the fleet."""
+    make_vehicle(vehicle_type="Water Tanker")
+    body = client.get("/vehicles/new").get_data(as_text=True)
+    assert 'list="vehicle-type-options"' in body
+    assert '<option value="Water Tanker">' in body
 
 
 def test_rule4_year_out_of_range_flashed(client):

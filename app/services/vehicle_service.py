@@ -1,6 +1,6 @@
 """Vehicle business logic."""
 from extensions import db
-from app.models import VEHICLE_STATUSES, VEHICLE_TYPES, TripLog, Vehicle
+from app.models import VEHICLE_STATUSES, TripLog, Vehicle
 
 from .pagination import paginate
 from .parsing import parse_float
@@ -23,6 +23,26 @@ def _plate_exists(plate: str, exclude_id: int | None = None) -> bool:
 def vehicle_options() -> list[Vehicle]:
     """All vehicles for form dropdowns — one lightweight query, no COUNT."""
     return Vehicle.query.order_by(Vehicle.status.asc(), Vehicle.name.asc()).all()
+
+
+def vehicle_type_options() -> list[str]:
+    """Distinct types already in the fleet, as form suggestions.
+
+    The type field is free text the user invents ("Tipper", "Grader"...);
+    this only whispers back what they've typed before so entries stay
+    consistent. Fresh fleets get an empty list — type anything.
+    """
+    rows = db.session.query(Vehicle.vehicle_type).distinct().all()
+    return sorted((row[0] for row in rows if row[0]), key=str.lower)
+
+
+def _clean_vehicle_type(data: dict) -> str | None:
+    """User-defined type: any text up to 50 chars; blank means "no opinion"
+    (the model falls back to its 'other' default)."""
+    value = str(data.get("vehicle_type") or "").strip()
+    if value and len(value) > 50:
+        raise ValueError("Vehicle type must be 50 characters or fewer")
+    return value or None
 
 
 def list_vehicles(
@@ -61,10 +81,8 @@ def create_vehicle(data: dict) -> Vehicle:
 
         vehicle = Vehicle(name=name, plate_number=plate)
 
-        vehicle_type = str(data.get("vehicle_type") or "").strip()
+        vehicle_type = _clean_vehicle_type(data)
         if vehicle_type:
-            if vehicle_type not in VEHICLE_TYPES:
-                raise ValueError("Invalid vehicle type")
             vehicle.vehicle_type = vehicle_type
 
         status = str(data.get("status") or "").strip()
@@ -115,10 +133,8 @@ def update_vehicle(vehicle_id: int, data: dict) -> Vehicle:
             vehicle.plate_number = plate
 
         if "vehicle_type" in data and str(data.get("vehicle_type") or "").strip():
-            vehicle_type = str(data.get("vehicle_type")).strip()
-            if vehicle_type not in VEHICLE_TYPES:
-                raise ValueError("Invalid vehicle type")
-            vehicle.vehicle_type = vehicle_type
+            # Blank keeps the old value — clearing is not a supported edit.
+            vehicle.vehicle_type = _clean_vehicle_type(data)
 
         if "status" in data and str(data.get("status") or "").strip():
             status = str(data.get("status")).strip()

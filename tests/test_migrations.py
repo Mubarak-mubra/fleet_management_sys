@@ -166,8 +166,9 @@ def test_init_db_is_noop_on_migrated_database(mig):
 def test_committed_migrations_upgrade_cleanly(tmp_path, monkeypatch):
     repo_migrations = Path(__file__).resolve().parent.parent / "migrations"
     versions = sorted((repo_migrations / "versions").glob("*.py"))
-    assert len(versions) == 5, (
-        "expected the initial, driver, expense, user and project revisions"
+    assert len(versions) == 6, (
+        "expected the initial, driver, expense, user, project and "
+        "vehicle-type-text revisions"
     )
 
     # The revisions must form a single linear chain. `parents` collects every

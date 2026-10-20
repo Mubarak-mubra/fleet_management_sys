@@ -2,25 +2,15 @@ from extensions import db
 
 from .base import BaseModel
 
-VEHICLE_TYPES = (
-    "excavator",
-    "dump_truck",
-    "loader",
-    "bulldozer",
-    "crane",
-    "concrete_mixer",
-    "other",
-)
-
 VEHICLE_STATUSES = ("active", "maintenance", "inactive", "retired")
 
 
 class Vehicle(BaseModel):
     name = db.Column(db.String(120), nullable=False)
     plate_number = db.Column(db.String(30), unique=True, nullable=False, index=True)
-    vehicle_type = db.Column(
-        db.Enum(*VEHICLE_TYPES, name="vehicle_type"), default="other"
-    )
+    # Free-form text, chosen by the user ("Tipper", "Grader", "Excavator"...)
+    # rather than a fixed dropdown — every fleet names its machines its way.
+    vehicle_type = db.Column(db.String(50), default="other")
     make = db.Column(db.String(80))
     model = db.Column(db.String(80))
     year = db.Column(db.Integer)

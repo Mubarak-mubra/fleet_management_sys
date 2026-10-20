@@ -5,7 +5,7 @@ from .maintenance import MAINTENANCE_STATUSES, MAINTENANCE_TYPES, MaintenanceLog
 from .project import PROJECT_STATUSES, Project
 from .trip import TRIP_STATUSES, TripLog
 from .user import DEFAULT_ROLE, ROLES, User
-from .vehicle import VEHICLE_STATUSES, VEHICLE_TYPES, Vehicle
+from .vehicle import VEHICLE_STATUSES, Vehicle
 
 __all__ = [
     "Vehicle",
@@ -16,7 +16,6 @@ __all__ = [
     "Expense",
     "Project",
     "User",
-    "VEHICLE_TYPES",
     "VEHICLE_STATUSES",
     "TRIP_STATUSES",
     "MAINTENANCE_TYPES",

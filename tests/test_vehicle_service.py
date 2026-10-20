@@ -106,10 +106,17 @@ class TestCreateVehicle:
                 {"name": "X", "plate_number": "GC-S1", "status": "flying"}
             )
 
-    def test_rule3_invalid_type(self, app):
-        with pytest.raises(ValueError, match="Invalid vehicle type"):
+    def test_custom_vehicle_type_is_accepted(self, app):
+        """Types are user-defined free text, not a fixed dropdown."""
+        vehicle = vehicle_service.create_vehicle(
+            {"name": "X", "plate_number": "GC-T1", "vehicle_type": "submarine"}
+        )
+        assert vehicle.vehicle_type == "submarine"
+
+    def test_vehicle_type_length_capped_at_50(self, app):
+        with pytest.raises(ValueError, match="50 characters"):
             vehicle_service.create_vehicle(
-                {"name": "X", "plate_number": "GC-T1", "vehicle_type": "submarine"}
+                {"name": "X", "plate_number": "GC-T2", "vehicle_type": "t" * 51}
             )
 
     def test_rule4_year_too_low(self, app):

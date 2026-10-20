@@ -33,7 +33,12 @@ def create():
             return redirect(url_for("vehicles.create"))
         flash(f"Vehicle {vehicle.name} created", "success")
         return redirect(url_for("vehicles.list"))
-    return render_template("vehicles/form.html", form_data={}, mode="create")
+    return render_template(
+        "vehicles/form.html",
+        form_data={},
+        mode="create",
+        types=vehicle_service.vehicle_type_options(),
+    )
 
 
 @bp.route("/<int:vehicle_id>/")
@@ -82,7 +87,11 @@ def edit(vehicle_id):
         "notes": vehicle.notes or "",
     }
     return render_template(
-        "vehicles/form.html", form_data=form_data, mode="edit", vehicle=vehicle
+        "vehicles/form.html",
+        form_data=form_data,
+        mode="edit",
+        vehicle=vehicle,
+        types=vehicle_service.vehicle_type_options(),
     )
 
 
