@@ -61,7 +61,13 @@ class TestConfig(Config):
 
 class ProdConfig(Config):
     DEBUG = False
-    SESSION_COOKIE_SECURE = True        # never send the session over plain http
+    # Secure cookies require an https:// site. Default ON; set
+    # SESSION_COOKIE_SECURE=0 when the deployment is served over plain
+    # http:// (e.g. a PythonAnywhere free plan) — otherwise the login
+    # cookie is silently dropped and users can never stay signed in.
+    SESSION_COOKIE_SECURE = (
+        os.environ.get("SESSION_COOKIE_SECURE", "1").lower() not in ("0", "false", "no")
+    )
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", DEFAULT_DB_URI)
 
 

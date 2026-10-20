@@ -185,6 +185,25 @@ def test_testing_config_is_untouched_by_the_default():
     assert TestConfig.SQLALCHEMY_DATABASE_URI == "sqlite:///:memory:"
 
 
+def test_secure_cookie_flag_follows_env(monkeypatch):
+    """SESSION_COOKIE_SECURE=0 keeps logins working on a plain-http
+    deployment (e.g. a PythonAnywhere free plan); default stays ON."""
+    import importlib
+
+    import config as config_module
+
+    monkeypatch.setenv("SESSION_COOKIE_SECURE", "0")
+    importlib.reload(config_module)
+    try:
+        assert config_module.ProdConfig.SESSION_COOKIE_SECURE is False
+    finally:
+        # monkeypatch only restores the env at teardown, so undo it here or
+        # the "restore" reload would just re-read the patched value.
+        monkeypatch.delenv("SESSION_COOKIE_SECURE", raising=False)
+        importlib.reload(config_module)
+    assert config_module.ProdConfig.SESSION_COOKIE_SECURE is True
+
+
 # ---- 5. response security headers ------------------------------------------
 
 
