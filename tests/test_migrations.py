@@ -13,8 +13,8 @@ from app.models import TripLog, Vehicle
 from config import TestConfig
 from extensions import db
 
-REV_MSG = "initial schema: vehicle, trip_log, fuel_log, maintenance_log, driver, expense, user, project"
-APP_TABLES = ["driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle"]
+REV_MSG = "initial schema: vehicle, vehicle_type, trip_log, fuel_log, maintenance_log, driver, expense, user, project"
+APP_TABLES = ["driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle", "vehicle_type"]
 REV_RE = re.compile(r"([0-9a-f]{12})_")
 
 
@@ -91,7 +91,7 @@ def test_upgrade_then_stamp_head_then_current(mig):
     assert rev_id in out, out
 
 
-def test_upgrade_creates_exactly_eight_app_tables(mig):
+def test_upgrade_creates_exactly_nine_app_tables(mig):
     _invoke(mig["runner"], "db", "upgrade", "-d", str(mig["dir"]))
     assert _tables(mig["app"]) == APP_TABLES
 
@@ -166,9 +166,9 @@ def test_init_db_is_noop_on_migrated_database(mig):
 def test_committed_migrations_upgrade_cleanly(tmp_path, monkeypatch):
     repo_migrations = Path(__file__).resolve().parent.parent / "migrations"
     versions = sorted((repo_migrations / "versions").glob("*.py"))
-    assert len(versions) == 6, (
-        "expected the initial, driver, expense, user, project and "
-        "vehicle-type-text revisions"
+    assert len(versions) == 7, (
+        "expected the initial, driver, expense, user, project, "
+        "vehicle-type-text and vehicle-type-registry revisions"
     )
 
     # The revisions must form a single linear chain. `parents` collects every

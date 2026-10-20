@@ -1,6 +1,10 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from app.services import fuel_service, vehicle_service
+from app.services import (
+    fuel_service,
+    vehicle_service,
+    vehicle_type_service,
+)
 
 bp = Blueprint("vehicles", __name__)
 
@@ -37,8 +41,43 @@ def create():
         "vehicles/form.html",
         form_data={},
         mode="create",
-        types=vehicle_service.vehicle_type_options(),
+        types=vehicle_type_service.type_options(),
     )
+
+
+@bp.route("/types/")
+def types():
+    """The Vehicle Types subtab: manage the registry the Type dropdown
+    is built from."""
+    return render_template(
+        "vehicles/types.html",
+        types=vehicle_type_service.list_types(),
+        mode="list",
+    )
+
+
+@bp.route("/types/new", methods=["POST"])
+def create_type():
+    try:
+        vehicle_type = vehicle_type_service.create_type(request.form.to_dict())
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("vehicles.types"))
+    flash(f"Vehicle type {vehicle_type.name} added", "success")
+    return redirect(url_for("vehicles.types"))
+
+
+@bp.route("/types/<int:type_id>/delete", methods=["POST"])
+def delete_type(type_id):
+    try:
+        vehicle_type_service.delete_type(type_id)
+    except LookupError:
+        abort(404)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("vehicles.types"))
+    flash("Vehicle type deleted", "success")
+    return redirect(url_for("vehicles.types"))
 
 
 @bp.route("/<int:vehicle_id>/")
@@ -91,7 +130,7 @@ def edit(vehicle_id):
         form_data=form_data,
         mode="edit",
         vehicle=vehicle,
-        types=vehicle_service.vehicle_type_options(),
+        types=vehicle_type_service.type_options(),
     )
 
 

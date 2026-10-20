@@ -27,16 +27,17 @@
     {% set current = form_data.get('vehicle_type', vehicle.vehicle_type if vehicle else '') %}
     <div class="field">
       <label for="f-type">Type</label>
-      {# Free text — the user invents the type ("Tipper", "Grader"...).
-         The datalist only suggests types already used in this fleet. #}
-      <input type="text" id="f-type" name="vehicle_type" value="{{ current }}"
-             list="vehicle-type-options" required placeholder="e.g. Tipper, Grader, Excavator"
-             autocomplete="off">
-      <datalist id="vehicle-type-options">
-        {% for t in types|default([]) %}
-        <option value="{{ t }}"></option>
+      {# Options come from the Vehicle Types registry (user-managed subtab). #}
+      <select id="f-type" name="vehicle_type" required>
+        <option value="">Choose a type…</option>
+        {% for t in types %}
+        <option value="{{ t }}" {% if current == t %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
-      </datalist>
+        {% if current and current not in types %}
+        <option value="{{ current }}" selected>{{ current }} (not registered)</option>
+        {% endif %}
+      </select>
+      <p class="muted">Type not on the list? <a href="{{ url_for('vehicles.types') }}">Add it under Vehicle Types</a> first.</p>
     </div>
 
     {% set current = form_data.get('status', vehicle.status if vehicle else '') %}

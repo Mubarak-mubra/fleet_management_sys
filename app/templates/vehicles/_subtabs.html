@@ -1,0 +1,8 @@
+{# Vehicles section switcher. Set active_subtab to 'vehicles' or 'types'
+   before including. #}
+<nav class="subtabs" aria-label="Vehicles section">
+  <a class="{{ 'active' if active_subtab == 'vehicles' }}"
+     href="{{ url_for('vehicles.list') }}">Vehicles</a>
+  <a class="{{ 'active' if active_subtab == 'types' }}"
+     href="{{ url_for('vehicles.types') }}">Vehicle Types</a>
+</nav>

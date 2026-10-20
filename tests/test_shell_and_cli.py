@@ -1,10 +1,10 @@
 from extensions import db as _db
 
 
-def test_shell_context_exposes_exactly_db_and_eight_models(app):
+def test_shell_context_exposes_exactly_db_and_nine_models(app):
     ctx = app.make_shell_context()
     assert set(ctx.keys()) == {
-        "app", "g", "db", "Vehicle", "TripLog", "FuelLog", "MaintenanceLog",
+        "app", "g", "db", "Vehicle", "VehicleType", "TripLog", "FuelLog", "MaintenanceLog",
         "Driver", "Expense", "Project", "User"
     }
 
@@ -29,11 +29,11 @@ def test_init_db_cli_returns_zero(app, db):
     assert "created" in result.output.lower()
 
 
-def test_init_db_cli_creates_eight_tables(app, db):
+def test_init_db_cli_creates_nine_tables(app, db):
     runner = app.test_cli_runner()
     result = runner.invoke(args=["init-db"])
     assert result.exit_code == 0, result.output
     names = sorted(db.inspect(db.engine).get_table_names())
     assert names == [
-        "driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle"
+        "driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle", "vehicle_type"
     ]

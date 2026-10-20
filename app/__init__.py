@@ -202,10 +202,12 @@ def _register_shell_context(app):
                 TripLog,
                 User,
                 Vehicle,
+                VehicleType,
             )
 
             ctx.update(
                 Vehicle=Vehicle,
+                VehicleType=VehicleType,
                 TripLog=TripLog,
                 FuelLog=FuelLog,
                 MaintenanceLog=MaintenanceLog,

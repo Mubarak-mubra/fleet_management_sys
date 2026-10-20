@@ -60,7 +60,8 @@ class TestGetVehicle:
 
 
 class TestCreateVehicle:
-    def test_valid_create(self, db):
+    def test_valid_create(self, db, make_vehicle_type):
+        make_vehicle_type(name="crane")
         vehicle = vehicle_service.create_vehicle(
             {"name": "Crane Liebherr", "plate_number": "GC-100", "vehicle_type": "crane",
              "make": "Liebherr", "model": "LTR 1220", "year": "2021", "status": "active",
@@ -106,18 +107,27 @@ class TestCreateVehicle:
                 {"name": "X", "plate_number": "GC-S1", "status": "flying"}
             )
 
-    def test_custom_vehicle_type_is_accepted(self, app):
-        """Types are user-defined free text, not a fixed dropdown."""
+    def test_registered_vehicle_type_is_accepted(self, app, make_vehicle_type):
+        """Types are user-registered; a known one saves fine."""
+        make_vehicle_type(name="submarine")
         vehicle = vehicle_service.create_vehicle(
             {"name": "X", "plate_number": "GC-T1", "vehicle_type": "submarine"}
         )
         assert vehicle.vehicle_type == "submarine"
 
-    def test_vehicle_type_length_capped_at_50(self, app):
-        with pytest.raises(ValueError, match="50 characters"):
+    def test_unregistered_vehicle_type_rejected(self, app):
+        with pytest.raises(ValueError, match="Unknown vehicle type"):
             vehicle_service.create_vehicle(
-                {"name": "X", "plate_number": "GC-T2", "vehicle_type": "t" * 51}
+                {"name": "X", "plate_number": "GC-T2", "vehicle_type": "submarine"}
             )
+
+    def test_vehicle_type_saved_with_registry_spelling(self, app, make_vehicle_type):
+        """Case-insensitive match, canonical spelling stored."""
+        make_vehicle_type(name="Tipper")
+        vehicle = vehicle_service.create_vehicle(
+            {"name": "X", "plate_number": "GC-T3", "vehicle_type": "TIPPER"}
+        )
+        assert vehicle.vehicle_type == "Tipper"
 
     def test_rule4_year_too_low(self, app):
         with pytest.raises(ValueError, match="Year must be between 1900 and 2100"):

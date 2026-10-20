@@ -6,9 +6,11 @@ from .project import PROJECT_STATUSES, Project
 from .trip import TRIP_STATUSES, TripLog
 from .user import DEFAULT_ROLE, ROLES, User
 from .vehicle import VEHICLE_STATUSES, Vehicle
+from .vehicle_type import VehicleType
 
 __all__ = [
     "Vehicle",
+    "VehicleType",
     "TripLog",
     "FuelLog",
     "MaintenanceLog",

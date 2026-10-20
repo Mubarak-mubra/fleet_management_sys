@@ -559,3 +559,24 @@ form.form { max-width: 640px; }
   .report-sheet tr { page-break-inside: avoid; }
   body { background: #fff; }
 }
+
+/* --- Section subtabs (Vehicles / Vehicle Types) ------------------------ */
+.subtabs {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.subtabs a {
+  padding: 0.5rem 0.15rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.subtabs a:hover { color: var(--ink); }
+.subtabs a.active {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}

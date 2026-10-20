@@ -236,7 +236,8 @@ def test_viewer_cannot_delete(viewer_client, make_vehicle):
     assert vehicle is not None
 
 
-def test_operator_can_create(client):
+def test_operator_can_create(client, make_vehicle_type):
+    make_vehicle_type(name="truck")
     resp = client.post(
         "/vehicles/new",
         data={"name": "New Truck", "plate_number": "GC-OPR1", "vehicle_type": "truck",

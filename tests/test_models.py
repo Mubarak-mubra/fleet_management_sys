@@ -16,10 +16,10 @@ from app.models import (
 )
 
 
-def test_eight_tables_created(db):
+def test_nine_tables_created(db):
     names = sorted(db.inspect(db.engine).get_table_names())
     assert names == [
-        "driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle"
+        "driver", "expense", "fuel_log", "maintenance_log", "project", "trip_log", "user", "vehicle", "vehicle_type"
     ]
 
 

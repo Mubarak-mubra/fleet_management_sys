@@ -11,7 +11,7 @@ import re
 import pytest
 
 from app import create_app
-from app.models import User
+from app.models import User, VehicleType
 from extensions import db as _db
 
 
@@ -34,6 +34,10 @@ def csrf_app():
         user = User(username="csrfadmin", role="admin", active=True)
         user.set_password("secretpass123")
         _db.session.add(user)
+        # The vehicle payloads below post type "dump_truck"; since types are
+        # user-registered, put one in the registry so the success path can
+        # actually reach the database.
+        _db.session.add(VehicleType(name="dump_truck"))
         _db.session.commit()
     yield app
     with app.app_context():

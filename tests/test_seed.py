@@ -1,7 +1,7 @@
 from collections import Counter
 from datetime import datetime, date
 
-from app.models import Driver, Expense, FuelLog, MaintenanceLog, Project, TripLog, Vehicle
+from app.models import Driver, Expense, FuelLog, MaintenanceLog, Project, TripLog, Vehicle, VehicleType
 from app.services import fuel_service, maintenance_service
 
 
@@ -13,8 +13,8 @@ def test_seed_db_exit_code_and_summary(app):
     result = run_seed(app)
     assert result.exit_code == 0, result.output
     assert (
-        "Seeded: 3 projects, 5 drivers, 5 vehicles, 18 trips, 16 fuel logs, "
-        "10 maintenance logs, 12 expenses." in result.output
+        "Seeded: 3 projects, 5 drivers, 5 vehicle types, 5 vehicles, "
+        "18 trips, 16 fuel logs, 10 maintenance logs, 12 expenses." in result.output
     )
 
 
@@ -22,6 +22,7 @@ def test_seed_creates_expected_counts(app):
     run_seed(app)
     assert Driver.query.count() == 5
     assert Vehicle.query.count() == 5
+    assert VehicleType.query.count() == 5
     assert Project.query.count() == 3
     assert TripLog.query.count() == 18
     assert FuelLog.query.count() == 16

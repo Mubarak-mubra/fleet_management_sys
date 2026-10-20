@@ -24,6 +24,7 @@ def test_get_sweep(client):
         "/": 200,
         "/vehicles/": 200,
         "/vehicles/new": 200,
+        "/vehicles/types/": 200,
         "/vehicles/999/": 404,
         "/vehicles/999/edit": 404,
         "/trips/": 200,
@@ -126,25 +127,33 @@ def test_rule3_invalid_status_flashed(client):
     assert "Invalid vehicle status" in body
 
 
-def test_custom_vehicle_type_accepted(client):
-    """Type is user-invented text ("Tipper", "Grader"...) — no fixed list."""
+def test_unregistered_vehicle_type_rejected(client):
+    """Type comes from the Vehicle Types registry — unknown values bounce."""
+    body = flash_page(client, client.post(
+        "/vehicles/new",
+        data={"name": "X", "plate_number": "GC-R3b", "vehicle_type": "Water Tanker"}))
+    assert "Unknown vehicle type" in body
+
+
+def test_registered_vehicle_type_accepted(client, make_vehicle_type):
+    make_vehicle_type(name="Water Tanker")
     resp = client.post(
         "/vehicles/new",
-        data={"name": "X", "plate_number": "GC-R3b", "vehicle_type": "Water Tanker"},
+        data={"name": "X", "plate_number": "GC-R3c", "vehicle_type": "water tanker"},
     )
     assert resp.status_code == 302
     from app.models import Vehicle
 
-    saved = Vehicle.query.filter_by(plate_number="GC-R3b").one()
+    saved = Vehicle.query.filter_by(plate_number="GC-R3c").one()
+    # Stored with the registry's canonical spelling, not the typed casing.
     assert saved.vehicle_type == "Water Tanker"
 
 
-def test_vehicle_form_suggests_previously_used_types(client, make_vehicle):
-    """The free-text type field whispers back types already in the fleet."""
-    make_vehicle(vehicle_type="Water Tanker")
+def test_vehicle_form_dropdown_is_built_from_registry(client, make_vehicle_type):
+    make_vehicle_type(name="Water Tanker")
     body = client.get("/vehicles/new").get_data(as_text=True)
-    assert 'list="vehicle-type-options"' in body
-    assert '<option value="Water Tanker">' in body
+    assert 'value="Water Tanker"' in body
+    assert "/vehicles/types/" in body  # "add it first" link present
 
 
 def test_rule4_year_out_of_range_flashed(client):
@@ -297,8 +306,9 @@ def test_rule21_invalid_maintenance_type_and_status_flashed(client, make_vehicle
 
 # ----------------------------------------------------------- success paths
 
-def test_vehicle_crud_round_trip(client, db):
+def test_vehicle_crud_round_trip(client, db, make_vehicle_type):
     assert Vehicle.query.count() == 0
+    make_vehicle_type(name="excavator")
 
     resp = client.post("/vehicles/new", data={
         "name": "Excavator CAT-320", "plate_number": "GC-OK1",

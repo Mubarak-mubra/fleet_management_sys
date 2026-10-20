@@ -13,6 +13,7 @@ from app.models import (
     TripLog,
     User,
     Vehicle,
+    VehicleType,
 )
 from extensions import db as _db
 
@@ -87,6 +88,17 @@ def viewer_client(app, make_user):
 @pytest.fixture()
 def db(app):
     return _db
+
+
+@pytest.fixture()
+def make_vehicle_type(db):
+    def _make(name="Excavator"):
+        vehicle_type = VehicleType(name=name)
+        db.session.add(vehicle_type)
+        db.session.commit()
+        return vehicle_type
+
+    return _make
 
 
 @pytest.fixture()

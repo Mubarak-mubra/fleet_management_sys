@@ -2,7 +2,16 @@ from datetime import date, datetime
 
 import click
 
-from app.models import Driver, Expense, FuelLog, MaintenanceLog, Project, TripLog, Vehicle
+from app.models import (
+    Driver,
+    Expense,
+    FuelLog,
+    MaintenanceLog,
+    Project,
+    TripLog,
+    Vehicle,
+    VehicleType,
+)
 from extensions import db
 
 SEED_EPOCH = date(2026, 9, 1)
@@ -93,6 +102,7 @@ def register_commands(app):
 
         click.echo(
             f"Seeded: {Project.query.count()} projects, {Driver.query.count()} drivers, "
+            f"{VehicleType.query.count()} vehicle types, "
             f"{Vehicle.query.count()} vehicles, "
             f"{TripLog.query.count()} trips, {FuelLog.query.count()} fuel logs, "
             f"{MaintenanceLog.query.count()} maintenance logs, "
@@ -109,6 +119,7 @@ def _seed():
     """
     drivers = _seed_drivers()
     projects = _seed_projects()
+    _seed_vehicle_types()
     vehicles = _seed_vehicles()
     db.session.flush()
 
@@ -169,6 +180,16 @@ def _seed_drivers():
     ]
     db.session.add_all(rows)
     return {row.name: row for row in rows}
+
+
+def _seed_vehicle_types():
+    """Register the demo fleet's type vocabulary before the vehicles that
+    use it — the Type dropdown and the delete guard read from this table."""
+    existing = {t.name.lower() for t in VehicleType.query.all()}
+    names = ("excavator", "dump_truck", "loader", "bulldozer", "concrete_mixer")
+    rows = [VehicleType(name=name) for name in names if name not in existing]
+    db.session.add_all(rows)
+    return rows
 
 
 def _seed_vehicles():

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% set page_title = "Vehicle Types" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-row">
+  <div>
+    <h2>Vehicle Types</h2>
+    <p class="muted">{{ types|length }} type{{ '' if types|length == 1 else 's' }} registered — these build the Type dropdown when adding a vehicle.</p>
+  </div>
+</section>
+{% set active_subtab = "types" %}
+{% include "vehicles/_subtabs.html" %}
+
+<section class="panel">
+  <form class="filter-bar" method="post" action="{{ url_for('vehicles.create_type') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="f-type-name">New type</label>
+      <input type="text" id="f-type-name" name="name" required maxlength="50"
+             placeholder="e.g. Tipper, Grader, Water Tanker" autocomplete="off">
+    </div>
+    <div class="field">
+      <button class="btn" type="submit">Add type</button>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Vehicles using</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for row in types %}
+      <tr>
+        <td data-label="Type">{{ row.type.name }}</td>
+        <td data-label="Vehicles using">{{ row.count }}</td>
+        <td class="cell-actions">
+          <form method="post" action="{{ url_for('vehicles.delete_type', type_id=row.type.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="empty-state">No types registered yet. Add your first one above — e.g. <b>Tipper</b>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -19,6 +19,7 @@ LIST_PAGES = [
     ("/fuel/", 105),         # 15 of 16 fuel logs x 7 data columns
     ("/maintenance/", 70),   # 10 rows x 7 data columns
     ("/projects/", 18),      # 3 rows x 6 data columns
+    ("/vehicles/types/", 10),  # 5 of 5 registered types x 2 data columns
     ("/", 45),               # dashboard: recent trips (5x4) + recent fuel (5x2)
                              # + overdue table reusing the "Date" label
 ]
