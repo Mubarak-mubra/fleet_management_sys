@@ -10,12 +10,10 @@ class FuelLog(BaseModel):
         nullable=False,
         index=True,
     )
-    project_id = db.Column(
-        db.Integer,
-        db.ForeignKey("project.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
+    # No project here, and deliberately so. A fill-up serves whatever the
+    # vehicle does next — often several jobs in one day — so nobody at the
+    # pump can say which project it belongs to. Project fuel is derived from
+    # the distance driven to that project instead (see project_service).
     fuel_date = db.Column(db.Date, nullable=False, index=True)
     liters = db.Column(db.Float, nullable=False)
     cost_per_liter = db.Column(db.Float, nullable=True)

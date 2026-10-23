@@ -122,7 +122,13 @@ def delete(project_id):
 
 @bp.route("/<int:project_id>/csv")
 def download_csv(project_id):
-    """One CSV with every cost booked to the project, for Excel/Sheets."""
+    """One CSV with every cost for this project, for Excel/Sheets.
+
+    Fuel and maintenance rows are per-vehicle estimates derived from trips
+    (see project_service.project_cost_report), and are labelled as such —
+    the trips, distance and litres behind them are real, only the split is
+    arithmetic.
+    """
     date_from = request.args.get("date_from") or None
     date_to = request.args.get("date_to") or None
     try:
@@ -141,31 +147,40 @@ def download_csv(project_id):
     writer.writerow([f"Project {project.code} — {project.name}"])
     writer.writerow(["Filters", f"from {date_from or 'start'}", f"to {date_to or 'today'}"])
     writer.writerow([])
-    writer.writerow(["Type", "Date", "Vehicle", "Details", "Liters", "Distance km", "Cost"])
+    writer.writerow(
+        ["Type", "Date", "Vehicle", "Details", "Liters", "Distance km", "Cost (est.)"]
+    )
 
-    for log in report["fuel_logs"]:
+    # Fuel and maintenance are not booked to a project anywhere (see their
+    # models) — these rows are derived from trips x each vehicle's measured
+    # efficiency, so they are estimates and say so in the Type column.
+    for row in report["vehicle_rows"]:
+        plate = row["vehicle"].plate_number if row["vehicle"] else ""
+        eff = (
+            f"{row['km_per_liter']:g} km/L"
+            if row["km_per_liter"]
+            else "fleet-average km/L (no measured figure)"
+        )
         writer.writerow(
             [
-                "fuel",
-                log.fuel_date.isoformat(),
-                log.vehicle.plate_number if log.vehicle else "",
-                log.supplier or "",
-                f"{log.liters:g}" if log.liters is not None else "",
+                "fuel (estimate)",
                 "",
-                f"{log.computed_total:.2f}",
+                plate,
+                f"{row['km']:g} km here at {eff}",
+                f"{row['liters']:g}",
+                "",
+                f"{row['fuel_cost']:.2f}",
             ]
         )
-    for log in report["maintenance_logs"]:
+        basis = row.get("maintenance_basis")
+        detail = "share of vehicle maintenance by km"
+        if basis:
+            detail += (
+                f" ({basis['fraction'] * 100:g}% of {basis['total_cost']:.2f}"
+                f" = {basis['project_km']:g} of {basis['fleet_km']:g} km)"
+            )
         writer.writerow(
-            [
-                "maintenance",
-                log.performed_date.isoformat() if log.performed_date else "",
-                log.vehicle.plate_number if log.vehicle else "",
-                f"{log.maintenance_type}: {log.description}",
-                "",
-                "",
-                f"{(log.cost or 0):.2f}",
-            ]
+            ["maintenance (estimate)", "", plate, detail, "", "", f"{row['maintenance_cost']:.2f}"]
         )
     for row in report["expenses"]:
         writer.writerow(
@@ -180,14 +195,6 @@ def download_csv(project_id):
             ]
         )
     for trip in report["trips"]:
-        distance = (
-            trip.distance_km
-            or (
-                trip.odometer_end - trip.odometer_start
-                if trip.odometer_start is not None and trip.odometer_end is not None
-                else 0.0
-            )
-        )
         writer.writerow(
             [
                 "trip",
@@ -195,14 +202,16 @@ def download_csv(project_id):
                 trip.vehicle.plate_number if trip.vehicle else "",
                 f"{trip.origin} -> {trip.destination} ({trip.driver_name})",
                 "",
-                f"{distance:g}",
+                f"{project_service.trip_distance(trip):g}",
                 "",
             ]
         )
 
     writer.writerow([])
-    writer.writerow(["", "", "", "Fuel total", "", "", f"{report['fuel_total']:.2f}"])
-    writer.writerow(["", "", "", "Maintenance total", "", "", f"{report['maintenance_total']:.2f}"])
+    writer.writerow(["", "", "", "Fuel total (estimate)", "", "", f"{report['fuel_total']:.2f}"])
+    writer.writerow(
+        ["", "", "", "Maintenance total (estimate)", "", "", f"{report['maintenance_total']:.2f}"]
+    )
     writer.writerow(["", "", "", "Expenses total", "", "", f"{report['expense_total']:.2f}"])
     writer.writerow(["", "", "", "GRAND TOTAL", "", "", f"{report['total']:.2f}"])
 

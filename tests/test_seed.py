@@ -39,7 +39,8 @@ def test_seed_projects_exist_with_codes(app):
     assert howl.end_date == date(2026, 12, 20)
 
 
-def test_seed_links_every_cost_type_to_projects(app):
+def test_seed_links_trips_and_expenses_to_projects(app):
+    """Trips and expenses carry a project; fuel and maintenance never do."""
     run_seed(app)
     jaziira = Project.query.filter_by(code="PRJ-0001").one()
     howl = Project.query.filter_by(code="PRJ-0002").one()
@@ -51,14 +52,13 @@ def test_seed_links_every_cost_type_to_projects(app):
     assert TripLog.query.filter_by(project_id=maka.id).count() == 3
     assert TripLog.query.filter_by(project_id=None).count() == 1
 
-    # Fuel: excavator (4) + truck baseline (1) / truck (2) + loader (3) + dozer (3) / mixer (3).
-    assert FuelLog.query.filter_by(project_id=jaziira.id).count() == 5
-    assert FuelLog.query.filter_by(project_id=howl.id).count() == 8
-    assert FuelLog.query.filter_by(project_id=maka.id).count() == 3
-    assert FuelLog.query.filter_by(project_id=None).count() == 0
-
-    # Maintenance: the overdue yard inspection stays unassigned.
-    assert MaintenanceLog.query.filter_by(project_id=None).count() == 1
+    # Fuel and maintenance belong to a vehicle and to no project at all —
+    # there is no project column to filter on, which is the point.
+    assert not hasattr(FuelLog, "project_id")
+    assert not hasattr(MaintenanceLog, "project_id")
+    # Every fill-up and service is still pinned to a real vehicle.
+    assert FuelLog.query.filter_by(vehicle_id=None).count() == 0
+    assert MaintenanceLog.query.filter_by(vehicle_id=None).count() == 0
 
     # Expenses: six fleet-wide bills plus the wash-down have no project;
     # the toll, fine, hoses, permit and filters are booked to a job.

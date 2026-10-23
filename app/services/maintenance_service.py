@@ -11,7 +11,6 @@ from app.models import (
 
 from .pagination import paginate
 from .parsing import parse_date, parse_float
-from .project_service import resolve_project
 
 
 def _resolve_vehicle(raw) -> Vehicle:
@@ -79,7 +78,6 @@ def create_maintenance(data: dict) -> MaintenanceLog:
 
         log = MaintenanceLog(
             vehicle_id=vehicle.id,
-            project=resolve_project(data.get("project_id")),
             maintenance_type=maintenance_type or "service",
             description=description,
             performed_date=performed_date,
@@ -107,8 +105,6 @@ def update_maintenance(maintenance_id: int, data: dict) -> MaintenanceLog:
 
         if "vehicle_id" in data:
             log.vehicle_id = _resolve_vehicle(data.get("vehicle_id")).id
-        if "project_id" in data:
-            log.project = resolve_project(data.get("project_id"))
         if "description" in data:
             description = str(data.get("description") or "").strip()
             if not description:

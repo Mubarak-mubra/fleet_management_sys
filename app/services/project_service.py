@@ -1,9 +1,16 @@
 """Project (construction job/site) business logic.
 
-A project is the cost-attribution layer: fuel, trips, maintenance and
-expenses can each be booked to one optionally, so per-project cost reports
-become possible. Validation lives here (name required, code unique,
-end_date not before start_date); the models stay context-free.
+A project is a reporting layer over work that actually happens to vehicles.
+Trips and expenses can be booked to one, because a trip genuinely goes to a
+site and a site permit genuinely belongs to it.
+
+Fuel and maintenance are NOT bookable to a project — see their models. A
+fill-up or a set of tyres serves whatever the vehicle does next, so nobody at
+the pump can honestly name a project. The project report derives those costs
+from trip distance instead, and labels them as estimates.
+
+Validation lives here (name required, code unique, end_date not before
+start_date); the models stay context-free.
 """
 from datetime import date, datetime, time
 
@@ -11,12 +18,13 @@ from extensions import db
 from app.models import (
     PROJECT_STATUSES,
     Expense,
-    FuelLog,
     MaintenanceLog,
     Project,
     TripLog,
+    Vehicle,
 )
 
+from .fuel_service import fuel_efficiency, fuel_stats
 from .pagination import paginate
 from .parsing import parse_date
 
@@ -187,12 +195,31 @@ def update_project(project_id: int, data: dict) -> Project:
         raise
 
 
+def trip_distance(trip: TripLog) -> float:
+    """Distance a trip actually covered.
+
+    The recorded distance wins when present. Otherwise fall back to the
+    odometer gap, which is the more trustworthy ruler — but only when both
+    readings exist and move forwards (a swapped or reset pair would report
+    hundreds of negative kilometres).
+    """
+    if trip.distance_km:
+        return float(trip.distance_km)
+    if trip.odometer_start is None or trip.odometer_end is None:
+        return 0.0
+    gap = float(trip.odometer_end) - float(trip.odometer_start)
+    return gap if gap > 0 else 0.0
+
+
 def linked_counts(project_id: int) -> dict[str, int]:
-    """How many records still point at this project, per type."""
+    """How many records still point at this project, per type.
+
+    Only trips and expenses carry a project. Fuel and maintenance are vehicle
+    costs with no project to unlink (see their models), and the project report
+    derives fuel from trips, so nothing there blocks a delete either.
+    """
     return {
         "trips": TripLog.query.filter_by(project_id=project_id).count(),
-        "fuel": FuelLog.query.filter_by(project_id=project_id).count(),
-        "maintenance": MaintenanceLog.query.filter_by(project_id=project_id).count(),
         "expenses": Expense.query.filter_by(project_id=project_id).count(),
     }
 
@@ -222,52 +249,54 @@ def delete_project(project_id: int) -> None:
 
 
 def project_cost_report(project_id: int, date_from=None, date_to=None) -> dict:
-    """Every cost booked to a project over an optional date window.
+    """What this project cost, over an optional date window.
 
-    The four record types each carry their own date field (fuel_date,
-    performed_date, trip start, expense_date), so the window is applied
-    per type. Trips are counted with their distance; they carry no direct
-    cost, but distance is what fuel and maintenance were burned to cover.
+    Fuel and maintenance are deliberately NOT booked to a project anywhere in
+    this system (see their models): a fill-up or a set of tyres serves whatever
+    the vehicle does next, so nobody at the pump can honestly name a project.
+    Booking them here would mean guessing.
+
+    Instead the fuel line is derived from trips, which DO carry a project:
+
+        fuel_liters  = distance driven here / the vehicle's measured km/L
+        fuel_total   = those liters x the fleet's average cost per liter
+
+    Both inputs are real, measured numbers — odometer distance from the trips
+    themselves, and efficiency from consecutive fill-ups. Only the split is
+    arithmetic, which makes this an ESTIMATE, labelled as one throughout.
+
+    The known limit is unrecorded driving. A yard run never entered as a trip
+    burns real fuel but vanishes from the vehicle's recorded distance, so the
+    project's share of that vehicle's MAINTENANCE (project km / all recorded
+    km) inflates and leans high by exactly that much. Fuel is safer: it is
+    charged only for distance actually recorded against the project, so
+    missing trips understate fuel rather than inflate it.
+
+    Maintenance is likewise estimated, by each working vehicle's share of its
+    own kilometres — see _derive_project_costs.
     """
     project = get_project(project_id)
 
-    fuel_q = FuelLog.query.filter(FuelLog.project_id == project.id)
-    maint_q = MaintenanceLog.query.filter(MaintenanceLog.project_id == project.id)
     trip_q = TripLog.query.filter(TripLog.project_id == project.id)
     expense_q = Expense.query.filter(Expense.project_id == project.id)
 
     if date_from not in (None, ""):
         d = parse_date(date_from, "date_from")
-        fuel_q = fuel_q.filter(FuelLog.fuel_date >= d)
-        maint_q = maint_q.filter(MaintenanceLog.performed_date >= d)
         trip_q = trip_q.filter(TripLog.start_time >= datetime.combine(d, time.min))
         expense_q = expense_q.filter(Expense.expense_date >= d)
     if date_to not in (None, ""):
         d = parse_date(date_to, "date_to")
-        fuel_q = fuel_q.filter(FuelLog.fuel_date <= d)
-        maint_q = maint_q.filter(MaintenanceLog.performed_date <= d)
         trip_q = trip_q.filter(TripLog.start_time <= datetime.combine(d, time.max))
         expense_q = expense_q.filter(Expense.expense_date <= d)
 
-    fuel_logs = fuel_q.order_by(FuelLog.fuel_date.asc(), FuelLog.id.asc()).all()
-    maintenance_logs = maint_q.order_by(
-        MaintenanceLog.performed_date.asc(), MaintenanceLog.id.asc()
-    ).all()
     trips = trip_q.order_by(TripLog.start_time.asc(), TripLog.id.asc()).all()
     expenses = expense_q.order_by(Expense.expense_date.asc(), Expense.id.asc()).all()
 
-    fuel_total = sum(log.computed_total for log in fuel_logs)
-    fuel_liters = sum(log.liters or 0 for log in fuel_logs)
-    maintenance_total = sum(log.cost or 0 for log in maintenance_logs)
+    distance_km = sum(trip_distance(trip) for trip in trips)
     expense_total = sum(row.amount or 0 for row in expenses)
-    distance_km = sum(
-        trip.distance_km
-        or (
-            trip.odometer_end - trip.odometer_start
-            if trip.odometer_start is not None and trip.odometer_end is not None
-            else 0.0
-        )
-        for trip in trips
+
+    fuel_liters, fuel_total, maintenance_total, vehicle_rows = _derive_project_costs(
+        trips, date_from, date_to
     )
 
     by_category: dict[str, float] = {}
@@ -277,16 +306,142 @@ def project_cost_report(project_id: int, date_from=None, date_to=None) -> dict:
     total = fuel_total + maintenance_total + expense_total
     return {
         "project": project,
-        "fuel_logs": fuel_logs,
-        "maintenance_logs": maintenance_logs,
         "trips": trips,
         "expenses": expenses,
-        "fuel_total": fuel_total,
         "fuel_liters": fuel_liters,
+        "fuel_total": fuel_total,
+        "fuel_estimate": True,
         "maintenance_total": maintenance_total,
+        "maintenance_estimate": True,
+        "vehicle_rows": vehicle_rows,
         "expense_total": expense_total,
         "expense_by_category": by_category,
         "distance_km": distance_km,
         "total": total,
         "cost_per_km": (total / distance_km) if distance_km > 0 else None,
     }
+
+
+def _derive_project_costs(
+    trips: list, date_from=None, date_to=None
+) -> tuple[float, float, float, list[dict]]:
+    """Vehicle costs this project can claim, broken out per vehicle.
+
+    Returns (fuel_liters, fuel_total, maintenance_total, per_vehicle_rows).
+
+    FUEL — distance done here / that vehicle's OWN measured km/L. Each
+    vehicle is charged at its own fill-to-fill efficiency (consecutive
+    fill-ups give odometer gap over liters added), so a truck doing 2.2 km/L
+    pays 2.2 and a thirsty grader pays its own rate. A vehicle with no usable
+    efficiency figure yet still gets charged at the fleet average, so its
+    trips are not silently free — that fallback is flagged on its row.
+
+    MAINTENANCE — what the vehicle cost to maintain over the window,
+    multiplied by the fraction of ITS OWN distance spent on this project. A
+    truck that did 70% of its kilometres here carries 70% of its servicing
+    cost here, capped at 100%. Wear follows kilometres, which is roughly true
+    and never exactly.
+
+    The per-vehicle rows are what make the estimate auditable: you can see
+    which vehicle did the distance and what was charged for it, rather than
+    being handed one unexplained total.
+    """
+    if not trips:
+        return 0.0, 0.0, 0.0, []
+
+    efficiency = fuel_efficiency()
+    by_vehicle_eff = efficiency.get("by_vehicle", {})
+    fleet_avg = efficiency.get("avg_km_per_liter") or 0.0
+    # Money uses what this company actually pays, weighted by its own spend.
+    cost_per_liter = fuel_stats().get("avg_cost_per_liter") or 0.0
+
+    project_km: dict[int, float] = {}
+    for trip in trips:
+        project_km[trip.vehicle_id] = project_km.get(trip.vehicle_id, 0.0) + (
+            trip_distance(trip)
+        )
+
+    fuel_liters = 0.0
+    fuel_total = 0.0
+    maintenance_total = 0.0
+    rows: list[dict] = []
+
+    for vehicle_id, km in project_km.items():
+        entry = by_vehicle_eff.get(vehicle_id) or {}
+        km_per_liter = float(entry["km_per_liter"] or 0) if entry else 0.0
+        estimated_efficiency = not km_per_liter
+        if not km_per_liter:
+            km_per_liter = fleet_avg
+
+        liters = (km / km_per_liter) if km_per_liter else 0.0
+        fuel_cost = liters * cost_per_liter
+        share = _maintenance_share(vehicle_id, km, date_from, date_to)
+
+        fuel_liters += liters
+        fuel_total += fuel_cost
+        maintenance_total += share["cost"]
+        rows.append(
+            {
+                "vehicle": db.session.get(Vehicle, vehicle_id),
+                "km": km,
+                "liters": liters,
+                "fuel_cost": fuel_cost,
+                "km_per_liter": km_per_liter or None,
+                "estimated_efficiency": estimated_efficiency,
+                "maintenance_cost": share["cost"],
+                "maintenance_basis": share["basis"],
+            }
+        )
+
+    rows.sort(key=lambda r: -r["km"])
+    return fuel_liters, fuel_total, maintenance_total, rows
+
+
+def _maintenance_share(
+    vehicle_id: int, project_km: float, date_from=None, date_to=None
+) -> dict:
+    """This vehicle's maintenance, cut down to its share spent here.
+
+    Returns the cut cost plus a human-readable basis string, so the report
+    can say where the number came from ("70% of 1,240 USD, by 70% of km").
+    """
+    fleet_km = sum(
+        trip_distance(t)
+        for t in _window(
+            TripLog.query.filter(TripLog.vehicle_id == vehicle_id),
+            TripLog.start_time,
+            date_from,
+            date_to,
+        ).all()
+    )
+    maint_cost = sum(
+        log.cost or 0
+        for log in _window(
+            MaintenanceLog.query.filter(MaintenanceLog.vehicle_id == vehicle_id),
+            MaintenanceLog.performed_date,
+            date_from,
+            date_to,
+        ).all()
+    )
+    if not fleet_km or not maint_cost:
+        return {"cost": 0.0, "basis": None}
+
+    fraction = min(project_km / fleet_km, 1.0)
+    return {
+        "cost": maint_cost * fraction,
+        "basis": {
+            "fraction": fraction,
+            "total_cost": maint_cost,
+            "project_km": project_km,
+            "fleet_km": fleet_km,
+        },
+    }
+
+
+def _window(query, column, date_from, date_to):
+    """Apply the same date window the trip query uses, to another model."""
+    if date_from not in (None, ""):
+        query = query.filter(column >= parse_date(date_from, "date_from"))
+    if date_to not in (None, ""):
+        query = query.filter(column <= parse_date(date_to, "date_to"))
+    return query

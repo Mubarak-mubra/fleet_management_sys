@@ -47,8 +47,8 @@
   </div>
 
   <div class="stats-strip">
-    <div class="stat"><b>{{ report.fuel_total|currency }}</b> fuel ({{ '%g'|format(report.fuel_liters) }} L)</div>
-    <div class="stat"><b>{{ report.maintenance_total|currency }}</b> maintenance</div>
+    <div class="stat stat-estimate"><b>{{ report.fuel_total|currency }}</b> fuel est. ({{ '%g'|format(report.fuel_liters) }} L)</div>
+    <div class="stat stat-estimate"><b>{{ report.maintenance_total|currency }}</b> maintenance est.</div>
     <div class="stat"><b>{{ report.expense_total|currency }}</b> other expenses</div>
     <div class="stat stat-total"><b>{{ report.total|currency }}</b> total</div>
   </div>
@@ -61,43 +61,39 @@
   </div>
   {% endif %}
 
-  <h3>Fuel ({{ report.fuel_logs|length }})</h3>
+  <h3>Vehicle costs — estimated ({{ report.vehicle_rows|length }})</h3>
+  <p class="estimate-note">
+    Fuel and maintenance are not booked to a project anywhere in this system —
+    nobody at the pump can say which job a fill-up or a set of tyres belongs to.
+    These figures are worked out instead from the trips below: distance driven
+    here, divided by each vehicle's own measured litres-per-kilometre, plus that
+    vehicle's servicing cost cut down by its share of kilometres. The trips,
+    the distance and the litres are all real; only the split is arithmetic.
+    <b>The fuel and maintenance lines are estimates, not metered.</b>
+  </p>
   <table>
     <thead>
-      <tr><th>Date</th><th>Vehicle</th><th>Supplier</th><th>Liters</th><th>Cost</th></tr>
+      <tr><th>Vehicle</th><th>Km here</th><th>km/L used</th><th>Est. liters</th><th>Est. fuel</th><th>Est. maintenance</th></tr>
     </thead>
     <tbody>
-      {% for log in report.fuel_logs %}
+      {% for row in report.vehicle_rows %}
       <tr>
-        <td data-label="Date">{{ log.fuel_date.strftime('%Y-%m-%d') }}</td>
-        <td data-label="Vehicle">{{ log.vehicle.plate_number if log.vehicle else '—' }}</td>
-        <td data-label="Supplier">{{ log.supplier or '—' }}</td>
-        <td data-label="Liters">{{ '%g'|format(log.liters) if log.liters is not none else '—' }}</td>
-        <td data-label="Cost">{{ log.computed_total|currency }}</td>
+        <td data-label="Vehicle">{{ row.vehicle.plate_number if row.vehicle else '—' }}</td>
+        <td data-label="Km here">{{ '%g'|format(row.km) }}</td>
+        <td data-label="km/L used">{{ '%g'|format(row.km_per_liter) if row.km_per_liter else 'no data' }}{% if row.estimated_efficiency and row.km_per_liter %} <span class="badge badge-estimate" title="This vehicle has no measured efficiency yet, so the fleet average was used.">fleet avg</span>{% endif %}</td>
+        <td data-label="Est. liters">{{ '%g'|format(row.liters) }}</td>
+        <td data-label="Est. fuel">{{ row.fuel_cost|currency }}</td>
+        <td data-label="Est. maintenance">
+          {{ row.maintenance_cost|currency }}
+          {% if row.maintenance_basis %}
+          <span class="muted" title="{{ '%g'|format(row.maintenance_basis.fraction * 100)}}% of {{ row.maintenance_basis.total_cost|currency }} maintenance, by share of km">
+            ({{ '%g'|format(row.maintenance_basis.fraction * 100) }}% of {{ row.maintenance_basis.total_cost|currency }})
+          </span>
+          {% endif %}
+        </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="empty-state">No fuel booked to this project.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h3>Maintenance ({{ report.maintenance_logs|length }})</h3>
-  <table>
-    <thead>
-      <tr><th>Date</th><th>Vehicle</th><th>Type</th><th>Description</th><th>Vendor</th><th>Cost</th></tr>
-    </thead>
-    <tbody>
-      {% for log in report.maintenance_logs %}
-      <tr>
-        <td data-label="Date">{{ log.performed_date.strftime('%Y-%m-%d') }}</td>
-        <td data-label="Vehicle">{{ log.vehicle.plate_number if log.vehicle else '—' }}</td>
-        <td data-label="Type">{{ log.maintenance_type|title }}</td>
-        <td data-label="Description">{{ log.description }}</td>
-        <td data-label="Vendor">{{ log.vendor or '—' }}</td>
-        <td data-label="Cost">{{ (log.cost or 0)|currency }}</td>
-      </tr>
-      {% else %}
-      <tr><td colspan="6" class="empty-state">No maintenance booked to this project.</td></tr>
+      <tr><td colspan="6" class="empty-state">No trips on this project yet, so there is nothing to estimate fuel or maintenance from.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -145,6 +141,9 @@
 
   <div class="report-total">
     <b>Grand total: {{ report.total|currency }}</b>
+    {% if report.fuel_estimate or report.maintenance_estimate %}
+    <span class="muted">(includes estimated fuel and maintenance — see the table above)</span>
+    {% endif %}
   </div>
 </section>
 

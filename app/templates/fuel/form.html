@@ -22,18 +22,6 @@
       </select>
     </div>
 
-    {% set current = form_data.get('project_id', log.project_id if log else '') %}
-    <div class="field">
-      <label for="f-project">Project</label>
-      <select id="f-project" name="project_id">
-        <option value="">No project</option>
-        {% for proj in projects %}
-        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
-        {% endfor %}
-      </select>
-      <small class="muted">Optional — e.g. fuel drawn at this job site goes here.</small>
-    </div>
-
     {% set current = form_data.get('fuel_date', log.fuel_date.isoformat() if log and log.fuel_date else '') %}
     <div class="field">
       <label for="f-date">Fuel date *</label>

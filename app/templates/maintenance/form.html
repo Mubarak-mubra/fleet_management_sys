@@ -24,18 +24,6 @@
       </select>
     </div>
 
-    {% set current = form_data.get('project_id', maintenance.project_id if maintenance else '') %}
-    <div class="field">
-      <label for="f-project">Project</label>
-      <select id="f-project" name="project_id">
-        <option value="">No project</option>
-        {% for proj in projects %}
-        <option value="{{ proj.id }}" {% if current is not none and current|string == proj.id|string %}selected{% endif %}>{{ proj.label }}</option>
-        {% endfor %}
-      </select>
-      <small class="muted">Optional — book this work to a job site for the project report.</small>
-    </div>
-
     {% set current = form_data.get('maintenance_type', maintenance.maintenance_type if maintenance else '') %}
     <div class="field">
       <label for="f-type">Type</label>

@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from app.services import fuel_service, project_service, vehicle_service
+from app.services import fuel_service, vehicle_service
 
 bp = Blueprint("fuel", __name__)
 
@@ -48,7 +48,6 @@ def create():
         form_data={},
         mode="create",
         vehicles=vehicle_service.vehicle_options(),
-        projects=project_service.project_options(),
     )
 
 
@@ -70,7 +69,6 @@ def edit(log_id):
         return redirect(url_for("fuel.list"))
     form_data = {
         "vehicle_id": log.vehicle_id,
-        "project_id": log.project_id,
         "fuel_date": log.fuel_date.isoformat() if log.fuel_date else "",
         "liters": log.liters,
         "cost_per_liter": log.cost_per_liter if log.cost_per_liter is not None else "",
@@ -86,7 +84,6 @@ def edit(log_id):
         mode="edit",
         log=log,
         vehicles=vehicle_service.vehicle_options(),
-        projects=project_service.project_options(),
     )
 
 

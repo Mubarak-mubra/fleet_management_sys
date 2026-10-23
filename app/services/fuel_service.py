@@ -6,7 +6,6 @@ from app.models import FuelLog, Vehicle
 
 from .pagination import paginate
 from .parsing import parse_date, parse_float
-from .project_service import resolve_project
 
 
 def _resolve_vehicle(raw) -> Vehicle:
@@ -75,7 +74,6 @@ def create_fuel_log(data: dict) -> FuelLog:
 
         log = FuelLog(
             vehicle_id=vehicle.id,
-            project=resolve_project(data.get("project_id")),
             fuel_date=fuel_date,
             liters=liters,
             cost_per_liter=cost_per_liter,
@@ -105,8 +103,6 @@ def update_fuel_log(log_id: int, data: dict) -> FuelLog:
         if "vehicle_id" in data:
             vehicle = _resolve_vehicle(data.get("vehicle_id"))
             log.vehicle_id = vehicle.id
-        if "project_id" in data:
-            log.project = resolve_project(data.get("project_id"))
         if "fuel_date" in data:
             fuel_date = parse_date(data.get("fuel_date"), "fuel_date")
             if fuel_date is None:

@@ -550,6 +550,17 @@ form.form { max-width: 640px; }
 .report-head { display: flex; flex-direction: column; gap: 2px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 2px solid var(--line); font-size: 14px; }
 .report-total { margin-top: 16px; padding-top: 10px; border-top: 2px solid var(--line); text-align: right; font-size: 16px; }
 
+/* ---- derived-cost estimates (project report) ----------------------------
+   Fuel and maintenance on a project report are worked out from trips, not
+   metered, so every place they appear says so. The note is deliberately
+   loud: an unlabelled estimate reads as a measurement, and that is how
+   reports get trusted more than they deserve to be. */
+.estimate-note { padding: 10px 12px; margin: 0 0 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; color: #92400e; font-size: 13px; line-height: 1.5; }
+.estimate-note b { color: #78350f; }
+.badge-estimate { background: #fffbeb; color: #92440e; border: 1px solid #fde68a; }
+.stat-estimate { background: #fffbeb; border-color: #fde68a; }
+.stat-estimate b { color: #92400e; }
+
 @media print {
   .sidebar, .navbar, .bottomnav, .flash-wrap, .no-print, .filter-bar,
   .row-actions, .cell-actions, .btn { display: none !important; }
@@ -558,25 +569,4 @@ form.form { max-width: 640px; }
   .report-sheet table { page-break-inside: auto; }
   .report-sheet tr { page-break-inside: avoid; }
   body { background: #fff; }
-}
-
-/* --- Section subtabs (Vehicles / Vehicle Types) ------------------------ */
-.subtabs {
-  display: flex;
-  gap: 1.25rem;
-  margin: 0 0 1rem;
-  border-bottom: 1px solid var(--line);
-}
-.subtabs a {
-  padding: 0.5rem 0.15rem;
-  color: var(--muted);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-.subtabs a:hover { color: var(--ink); }
-.subtabs a.active {
-  color: var(--ink);
-  font-weight: 600;
-  border-bottom-color: var(--accent);
 }

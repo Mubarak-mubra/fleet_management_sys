@@ -6,12 +6,19 @@ PROJECT_STATUSES = ("planned", "active", "on_hold", "completed", "cancelled")
 
 
 class Project(BaseModel):
-    """A construction job/site that fleet costs can be booked to.
+    """A construction job/site that fleet work is reported against.
 
-    Fuel, trips, maintenance and expenses link to a project *optionally*:
-    office overhead and quick entries belong to no single job. All four
-    relationships deliberately do NOT cascade-delete — like expenses on a
-    vehicle, the money was still spent, so deleting a project keeps the
+    Trips and expenses link to a project *optionally*: a trip genuinely goes
+    to a site, and a site permit genuinely belongs to one. Office overhead
+    and quick entries belong to no single job.
+
+    Fuel and maintenance deliberately cannot link — a fill-up or a set of
+    tyres serves whatever the vehicle does next, so nobody at the pump can
+    name a project. Their project share is derived from trip distance
+    instead (see project_service.project_cost_report).
+
+    Both relationships deliberately do NOT cascade-delete — like expenses on
+    a vehicle, the money was still spent, so deleting a project keeps the
     records and merely unlinks them (SQLAlchemy nulls the FK; the DB's
     ON DELETE SET NULL is the raw-SQL backstop, SQLite runs FKs off here).
     """
@@ -38,16 +45,6 @@ class Project(BaseModel):
 
     trips = db.relationship(
         "TripLog",
-        backref=db.backref("project", lazy="select"),
-        lazy="select",
-    )
-    fuel_logs = db.relationship(
-        "FuelLog",
-        backref=db.backref("project", lazy="select"),
-        lazy="select",
-    )
-    maintenance_logs = db.relationship(
-        "MaintenanceLog",
         backref=db.backref("project", lazy="select"),
         lazy="select",
     )

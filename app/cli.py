@@ -113,9 +113,10 @@ def register_commands(app):
 def _seed():
     """Lay down one coherent fleet story (see each helper's docstring).
 
-    Three live jobs, five machines, five drivers — every trip, fill-up,
-    service and job cost booked to the project it belongs to, with yard and
-    fleet-wide costs deliberately left unassigned.
+    Three live jobs, five machines, five drivers. Trips and job costs are
+    booked to the project they belong to; fuel and maintenance stay on the
+    vehicle, which is how the real system works — a fill-up or a tyre serves
+    whatever the vehicle does next, so it belongs to no single job.
     """
     drivers = _seed_drivers()
     projects = _seed_projects()
@@ -124,8 +125,8 @@ def _seed():
     db.session.flush()
 
     db.session.add_all(_seed_trips(vehicles, drivers, projects))
-    db.session.add_all(_seed_fuel(vehicles, projects))
-    db.session.add_all(_seed_maintenance(vehicles, projects))
+    db.session.add_all(_seed_fuel(vehicles))
+    db.session.add_all(_seed_maintenance(vehicles))
     db.session.add_all(_seed_expenses(vehicles, projects))
 
 
@@ -304,7 +305,7 @@ def _seed_trips(vehicles, drivers, projects):
     ]
 
 
-def _seed_fuel(vehicles, projects):
+def _seed_fuel(vehicles):
     """16 fill-ups, coherent with the trip odometers above.
 
     The dump truck's readings advance with its hauls (fill-to-fill gives a
@@ -313,76 +314,76 @@ def _seed_fuel(vehicles, projects):
     draws carry no odometer at all, exactly like a bowser delivery where
     nobody notes the meter. That means only GC-102 produces a km/L figure,
     which is the honest answer for this fleet.
+
+    No project is booked here, matching the real model: a fill-up serves
+    whatever the vehicle does next, so project fuel is derived from trips
+    instead (see project_service.project_cost_report).
     """
-    J, H, M = "PRJ-0001", "PRJ-0002", "PRJ-0003"
     site_note = "Drawn from site tank (bowser delivery)"
     specs = [
-        # vehicle, date, liters, cost/L, odometer, supplier, receipt, project, notes
-        ("GC-102", date(2026, 9, 2), 95.0, 1.14, 98042.5, "Hass Petroleum", "HP-77120", J, None),
-        ("GC-101", date(2026, 9, 3), 300.0, 1.15, 16491.0, "Hass Petroleum", "HP-77135", J, site_note),
-        ("GC-103", date(2026, 9, 8), 240.0, 1.12, 41816.0, "Al-Nur Fuel", "AN-30241", H, site_note),
-        ("GC-104", date(2026, 9, 13), 260.0, 1.13, 27566.0, "Hass Petroleum", "HP-77402", H, site_note),
-        ("GC-101", date(2026, 9, 17), 300.0, 1.14, 16491.0, "Shifa Petroleum", "SP-11876", J, site_note),
-        ("GC-105", date(2026, 9, 19), 90.0, 1.20, None, "Somali Oil", "SO-56019", M, site_note),
-        ("GC-103", date(2026, 9, 22), 240.0, 1.14, 41816.0, "Hass Petroleum", "HP-77518", H, site_note),
-        ("GC-102", date(2026, 9, 26), 110.0, 1.16, 98291.5, "Shifa Petroleum", "SP-11955", H, None),
-        ("GC-104", date(2026, 9, 27), 260.0, 1.15, 27566.0, "Somali Oil", "SO-56140", H, site_note),
-        ("GC-101", date(2026, 10, 1), 300.0, 1.16, 16491.0, "Somali Oil", "SO-56203", J, site_note),
-        ("GC-105", date(2026, 10, 5), 90.0, 1.22, None, "Al-Nur Fuel", "AN-30477", M, site_note),
-        ("GC-103", date(2026, 10, 6), 240.0, 1.20, 41816.0, "Hass Petroleum", "HP-77790", H, site_note),
-        ("GC-104", date(2026, 10, 11), 260.0, 1.21, 27566.0, "Shifa Petroleum", "SP-12104", H, site_note),
-        ("GC-101", date(2026, 10, 15), 300.0, 1.18, 16491.0, "Al-Nur Fuel", "AN-30512", J, site_note),
-        ("GC-102", date(2026, 10, 16), 75.0, 1.20, 98460.0, "Somali Oil", "SO-56355", H, None),
-        ("GC-105", date(2026, 10, 17), 85.0, 1.19, None, "Hass Petroleum", "HP-77901", M, site_note),
+        # vehicle, date, liters, cost/L, odometer, supplier, receipt, notes
+        ("GC-102", date(2026, 9, 2), 95.0, 1.14, 98042.5, "Hass Petroleum", "HP-77120", None),
+        ("GC-101", date(2026, 9, 3), 300.0, 1.15, 16491.0, "Hass Petroleum", "HP-77135", site_note),
+        ("GC-103", date(2026, 9, 8), 240.0, 1.12, 41816.0, "Al-Nur Fuel", "AN-30241", site_note),
+        ("GC-104", date(2026, 9, 13), 260.0, 1.13, 27566.0, "Hass Petroleum", "HP-77402", site_note),
+        ("GC-101", date(2026, 9, 17), 300.0, 1.14, 16491.0, "Shifa Petroleum", "SP-11876", site_note),
+        ("GC-105", date(2026, 9, 19), 90.0, 1.20, None, "Somali Oil", "SO-56019", site_note),
+        ("GC-103", date(2026, 9, 22), 240.0, 1.14, 41816.0, "Hass Petroleum", "HP-77518", site_note),
+        ("GC-102", date(2026, 9, 26), 110.0, 1.16, 98291.5, "Shifa Petroleum", "SP-11955", None),
+        ("GC-104", date(2026, 9, 27), 260.0, 1.15, 27566.0, "Somali Oil", "SO-56140", site_note),
+        ("GC-101", date(2026, 10, 1), 300.0, 1.16, 16491.0, "Somali Oil", "SO-56203", site_note),
+        ("GC-105", date(2026, 10, 5), 90.0, 1.22, None, "Al-Nur Fuel", "AN-30477", site_note),
+        ("GC-103", date(2026, 10, 6), 240.0, 1.20, 41816.0, "Hass Petroleum", "HP-77790", site_note),
+        ("GC-104", date(2026, 10, 11), 260.0, 1.21, 27566.0, "Shifa Petroleum", "SP-12104", site_note),
+        ("GC-101", date(2026, 10, 15), 300.0, 1.18, 16491.0, "Al-Nur Fuel", "AN-30512", site_note),
+        ("GC-102", date(2026, 10, 16), 75.0, 1.20, 98460.0, "Somali Oil", "SO-56355", None),
+        ("GC-105", date(2026, 10, 17), 85.0, 1.19, None, "Hass Petroleum", "HP-77901", site_note),
     ]
     return [
         FuelLog(
             vehicle=vehicles[plate], fuel_date=day, liters=liters,
             cost_per_liter=cpl, odometer=odo, supplier=supplier,
             receipt_ref=receipt, notes=notes,
-            project=projects[code] if code else None,
         )
-        for (plate, day, liters, cpl, odo, supplier, receipt, code, notes) in specs
+        for (plate, day, liters, cpl, odo, supplier, receipt, notes) in specs
     ]
 
 
-def _seed_maintenance(vehicles, projects):
+def _seed_maintenance(vehicles):
     """10 service records: 8 completed, the dozer's blade leak still in the
     shop queue (in_progress), and one overdue rear-axle inspection so the
     dashboard has something real to flag."""
-    J, H, M = "PRJ-0001", "PRJ-0002", "PRJ-0003"
     specs = [
-        # vehicle, type, description, performed, next_due, cost, status, vendor, odometer, project
+        # vehicle, type, description, performed, next_due, cost, status, vendor, odometer
         ("GC-102", "tire", "Rear axle tire inspection", date(2026, 8, 20), date(2026, 10, 12),
-         49.6, "scheduled", "Shibis Auto Workshop", 97950.0, None),
+         49.6, "scheduled", "Shibis Auto Workshop", 97950.0),
         ("GC-101", "service", "250-hour service", date(2026, 9, 5), date(2026, 12, 5),
-         148.0, "completed", "Horn Auto Spares", 16491.0, J),
+         148.0, "completed", "Horn Auto Spares", 16491.0),
         ("GC-102", "repair", "Brake line replacement", date(2026, 9, 7), date(2027, 3, 7),
-         102.0, "completed", "Banaadir Diesel", 98080.5, J),
+         102.0, "completed", "Banaadir Diesel", 98080.5),
         ("GC-104", "inspection", "Quarterly safety inspection", date(2026, 9, 11), date(2026, 12, 11),
-         36.0, "completed", "Shibis Auto Workshop", 27500.0, H),
+         36.0, "completed", "Shibis Auto Workshop", 27500.0),
         ("GC-103", "tire", "Loader tire set replacement", date(2026, 9, 16), date(2027, 9, 16),
-         336.0, "completed", "Horn Auto Spares", 41816.0, H),
+         336.0, "completed", "Horn Auto Spares", 41816.0),
         ("GC-103", "repair", "Boom hydraulic hose replacement", date(2026, 9, 24), None,
-         185.0, "completed", "Banaadir Diesel", 41816.0, H),
+         185.0, "completed", "Banaadir Diesel", 41816.0),
         ("GC-104", "repair", "Dozer blade hydraulic leak", date(2026, 10, 1), date(2026, 11, 20),
-         272.0, "in_progress", "Banaadir Diesel", 27566.0, H),
+         272.0, "in_progress", "Banaadir Diesel", 27566.0),
         ("GC-101", "service", "Hydraulic filter change", date(2026, 10, 3), date(2027, 1, 3),
-         54.4, "completed", "Banaadir Diesel", 16491.0, J),
+         54.4, "completed", "Banaadir Diesel", 16491.0),
         ("GC-105", "repair", "Mixer drum paddle replacement", date(2026, 10, 8), None,
-         160.0, "completed", "Shibis Auto Workshop", 76056.0, M),
+         160.0, "completed", "Shibis Auto Workshop", 76056.0),
         ("GC-102", "tire", "Rear axle tire rotation", date(2026, 10, 12), date(2027, 4, 12),
-         49.6, "completed", "Shibis Auto Workshop", 98460.0, H),
+         49.6, "completed", "Shibis Auto Workshop", 98460.0),
     ]
     return [
         MaintenanceLog(
             vehicle=vehicles[plate], maintenance_type=mtype, description=description,
             performed_date=performed, next_due_date=next_due, cost=cost,
             status=status, vendor=vendor, odometer=odo,
-            project=projects[code] if code else None,
         )
         for (plate, mtype, description, performed, next_due, cost, status,
-             vendor, odo, code) in specs
+             vendor, odo) in specs
     ]
 
 

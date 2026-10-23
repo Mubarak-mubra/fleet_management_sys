@@ -23,12 +23,8 @@ class MaintenanceLog(BaseModel):
         nullable=False,
         index=True,
     )
-    project_id = db.Column(
-        db.Integer,
-        db.ForeignKey("project.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
+    # No project here either. Tyres and services wear by distance and time,
+    # spread across every job the vehicle works — not booked to one site.
     maintenance_type = db.Column(
         db.Enum(*MAINTENANCE_TYPES, name="maintenance_type"), default="service"
     )
