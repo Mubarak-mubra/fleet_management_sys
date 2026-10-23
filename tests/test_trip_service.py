@@ -214,6 +214,40 @@ class TestCompleteTrip:
         assert completed.status == "completed"
         assert completed.end_time is not None
 
+    def test_keeps_end_time_already_on_the_trip(self, make_trip):
+        """The Complete button submits no fields, so an end time the dispatcher
+        already entered must survive — not be discarded for a fresh 'now'.
+
+        The trip here is dated after any real clock, which is what made the
+        bug bite: the fallback 'now' landed before start_time and the trip
+        could never be completed at all.
+        """
+        start = datetime(2099, 6, 1, 16, 4)
+        recorded_end = datetime(2099, 6, 1, 17, 9)
+        trip = make_trip(status="in_progress", start_time=start, end_time=recorded_end)
+
+        completed = trip_service.complete_trip(trip.id)
+
+        assert completed.status == "completed"
+        assert completed.end_time == recorded_end
+
+    def test_fallback_end_time_uses_local_clock(self, make_trip):
+        """A fallback must be stamped on the company's own wall clock, not UTC.
+
+        Trip forms collect local time (UTC+3 here), so a UTC fallback sits
+        three hours behind a start_time entered minutes ago and rejects it.
+        """
+        from app.models.base import local_now
+
+        now = local_now()
+        trip = make_trip(status="in_progress", start_time=now.replace(microsecond=0))
+
+        completed = trip_service.complete_trip(trip.id)
+
+        assert completed.status == "completed"
+        # Within a minute of the local clock, and never the 3-hours-behind UTC one.
+        assert abs((completed.end_time - now).total_seconds()) < 60
+
     def test_with_explicit_end_time_and_distance(self, make_trip):
         trip = make_trip(status="in_progress", odometer_start=1000.0)
         end = datetime(2026, 7, 7, 17, 0)

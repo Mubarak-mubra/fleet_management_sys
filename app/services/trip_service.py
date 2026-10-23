@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from extensions import db
 from app.models import TRIP_STATUSES, Driver, FuelLog, MaintenanceLog, TripLog, Vehicle
-from app.models.base import utcnow
+from app.models.base import local_now
 
 from .pagination import paginate
 from .parsing import parse_datetime, parse_float
@@ -226,7 +226,9 @@ def start_trip(trip_id: int) -> TripLog:
         if trip.status != "planned":
             raise ValueError("Only planned trips can be started")
         if trip.start_time is None:
-            trip.start_time = utcnow()
+            # Local wall clock, not UTC: this value gets compared against
+            # start/end times a dispatcher typed in local time.
+            trip.start_time = local_now()
         trip.status = "in_progress"
         db.session.commit()
         return trip
@@ -248,9 +250,16 @@ def complete_trip(
         if isinstance(end_time, str):
             end_time = parse_datetime(end_time, "end_time")
         if end_time is None:
-            end_time = utcnow()
+            # Prefer the end time already recorded on the trip. The Complete
+            # button submits no fields, so without this the dispatcher's own
+            # entry would be silently discarded and replaced by a guess.
+            end_time = trip.end_time or local_now()
         if trip.start_time is not None and end_time < trip.start_time:
-            raise ValueError("end_time must be after start_time")
+            raise ValueError(
+                "End time is before the trip started "
+                f"({trip.start_time.strftime('%Y-%m-%d %H:%M')}). "
+                "Check the trip's start and end times."
+            )
 
         if isinstance(distance_km, str):
             distance_km = parse_float(distance_km, "distance_km")

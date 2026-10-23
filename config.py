@@ -19,6 +19,14 @@ class Config:
     CURRENCY = os.environ.get("CURRENCY", "USD")
     CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "$")
 
+    # The timezone this company actually works in. Forms collect wall-clock
+    # time typed by a dispatcher in Somalia, so any "now" the app invents on
+    # their behalf must be in that same clock — otherwise "complete this trip"
+    # compares a UTC instant against a local start_time and rejects trips that
+    # genuinely ended. Naive UTC is still stored (see models/base.py); this
+    # only decides which clock "now" is read from.
+    APP_TIMEZONE = os.environ.get("APP_TIMEZONE", "Africa/Mogadishu")
+
     # --- session hardening ------------------------------------------------
     SESSION_COOKIE_HTTPONLY = True      # JS cannot read the session cookie
     SESSION_COOKIE_SAMESITE = "Lax"     # not sent on cross-site POSTs
