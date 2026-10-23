@@ -77,9 +77,9 @@ request.
 |---|---|---|
 | `/` | GET | `dashboard.index` |
 | `/vehicles/` | GET | `vehicles.list` |
-| `/vehicles/types/` | GET | `vehicles.types` |
-| `/vehicles/types/new` | POST | `vehicles.create_type` |
-| `/vehicles/types/<id>/delete` | POST | `vehicles.delete_type` |
+| `/vehicle-types/` | GET | `vehicle_types.list` |
+| `/vehicle-types/new` | POST | `vehicle_types.create` |
+| `/vehicle-types/<id>/delete` | POST | `vehicle_types.delete` |
 | `/vehicles/new` | GET,POST | `vehicles.create` |
 | `/vehicles/<id>/` | GET | `vehicles.detail` |
 | `/vehicles/<id>/edit` | GET,POST | `vehicles.edit` |

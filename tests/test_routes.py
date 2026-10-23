@@ -24,7 +24,7 @@ def test_get_sweep(client):
         "/": 200,
         "/vehicles/": 200,
         "/vehicles/new": 200,
-        "/vehicles/types/": 200,
+        "/vehicle-types/": 200,
         "/vehicles/999/": 404,
         "/vehicles/999/edit": 404,
         "/trips/": 200,
@@ -153,7 +153,7 @@ def test_vehicle_form_dropdown_is_built_from_registry(client, make_vehicle_type)
     make_vehicle_type(name="Water Tanker")
     body = client.get("/vehicles/new").get_data(as_text=True)
     assert 'value="Water Tanker"' in body
-    assert "/vehicles/types/" in body  # "add it first" link present
+    assert "/vehicle-types/" in body  # "add it first" link present
 
 
 def test_rule4_year_out_of_range_flashed(client):

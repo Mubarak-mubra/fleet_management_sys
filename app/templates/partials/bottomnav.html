@@ -2,10 +2,11 @@
    JS-free by project convention — active state keys on the endpoint prefix.
 
    Five tabs is the native ceiling for comfortable tap targets on a phone, so
-   the less-frequent sections (Maintenance, Drivers) live behind "More".
+   the less-frequent sections (Maintenance, Drivers, Expenses, Vehicle Types)
+   live behind "More".
    #}
 {% set ep = request.endpoint or '' %}
-{% set in_more = ep.startswith('more.') or ep.startswith('maintenance.') or ep.startswith('drivers.') or ep.startswith('expenses.') %}
+{% set in_more = ep.startswith('more.') or ep.startswith('maintenance.') or ep.startswith('drivers.') or ep.startswith('expenses.') or ep.startswith('vehicle_types.') %}
 <nav class="bottomnav" aria-label="Primary">
   <a href="{{ url_for('dashboard.index') }}"
      class="{{ 'active' if ep.startswith('dashboard.') else '' }}"

@@ -10,11 +10,9 @@
     <p class="muted">{{ types|length }} type{{ '' if types|length == 1 else 's' }} registered — these build the Type dropdown when adding a vehicle.</p>
   </div>
 </section>
-{% set active_subtab = "types" %}
-{% include "vehicles/_subtabs.html" %}
 
 <section class="panel">
-  <form class="filter-bar" method="post" action="{{ url_for('vehicles.create_type') }}">
+  <form class="filter-bar" method="post" action="{{ url_for('vehicle_types.create') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="field">
       <label for="f-type-name">New type</label>
@@ -36,7 +34,7 @@
         <td data-label="Type">{{ row.type.name }}</td>
         <td data-label="Vehicles using">{{ row.count }}</td>
         <td class="cell-actions">
-          <form method="post" action="{{ url_for('vehicles.delete_type', type_id=row.type.id) }}">
+          <form method="post" action="{{ url_for('vehicle_types.delete', type_id=row.type.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-danger btn-sm" type="submit">Delete</button>
           </form>

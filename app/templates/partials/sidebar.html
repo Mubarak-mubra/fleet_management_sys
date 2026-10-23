@@ -8,6 +8,8 @@
        class="{{ 'active' if request.endpoint and request.endpoint.startswith('dashboard.') else '' }}">Dashboard</a>
     <a href="{{ url_for('vehicles.list') }}"
        class="{{ 'active' if request.endpoint and request.endpoint.startswith('vehicles.') else '' }}">Vehicles</a>
+    <a href="{{ url_for('vehicle_types.list') }}"
+       class="{{ 'active' if request.endpoint and request.endpoint.startswith('vehicle_types.') else '' }}">Vehicle Types</a>
     <a href="{{ url_for('projects.list') }}"
        class="{{ 'active' if request.endpoint and request.endpoint.startswith('projects.') else '' }}">Projects</a>
     <a href="{{ url_for('trips.list') }}"

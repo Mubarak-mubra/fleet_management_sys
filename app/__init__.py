@@ -151,11 +151,13 @@ def _register_blueprints(app):
     from app.blueprints.trips import bp as trips_bp
     from app.blueprints.users import bp as users_bp
     from app.blueprints.vehicles import bp as vehicles_bp
+    from app.blueprints.vehicle_types import bp as vehicle_types_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(dashboard_bp, url_prefix="/")
     app.register_blueprint(vehicles_bp, url_prefix="/vehicles")
+    app.register_blueprint(vehicle_types_bp, url_prefix="/vehicle-types")
     app.register_blueprint(trips_bp, url_prefix="/trips")
     app.register_blueprint(drivers_bp, url_prefix="/drivers")
     app.register_blueprint(fuel_bp, url_prefix="/fuel")
