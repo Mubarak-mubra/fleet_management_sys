@@ -168,6 +168,14 @@ tests/              pytest suite: services, routes, models, CLI, seed, migration
 - `CURRENCY` / `CURRENCY_SYMBOL` — env vars controlling how every cost field is
   displayed (defaults `USD` / `$`). Costs are stored as plain numbers; changing
   these changes the label only, never the stored values.
+- `APP_TIMEZONE` — env var; default `Africa/Mogadishu`. The company's own wall
+  clock, used for any "now" the app invents on a user's behalf: starting a trip
+  with no start time, or completing one with no end time. It must match the
+  time users type into forms, which are local wall-clock time — reading UTC
+  instead put that fallback three hours behind the start_time it was about to
+  be compared against, so same-shift trips could not be completed. Audit
+  stamps (`created_at`/`updated_at`) stay on UTC, since they are never
+  compared against entered times.
 - **Trip status renders in Somali** via the `trip_status` template filter:
   `planned` → *isku diyaarin bixit*, `in_progress` → *baxay*, `completed` →
   *dhameystiray*, `cancelled` → *lajoojiyay*. Labels live in
